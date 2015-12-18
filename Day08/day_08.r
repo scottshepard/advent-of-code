@@ -11,3 +11,6 @@ n_char_memory <- sapply(seq_along(list), function(i) {
 sum(n_char_string) - sum(n_char_memory)
 # Answer is 1350
 
+# Part 2
+sum(nchar(sapply(list, deparse))) - sum(n_char_string)
+
