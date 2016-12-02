@@ -49,9 +49,11 @@
 # How many blocks away is the first location you visit twice?
 #
 # Your puzzle answer was 124.
+# ----------------------------------------------------------------------------
+
 import re
 
-f = open('data.txt', 'r')
+f = open('day01.txt', 'r')
 data = f.read()
 
 class Location:
