@@ -4,7 +4,6 @@ f = open('data.txt', 'r')
 data = f.read()
 
 class Location:
-    
     def __init__(self):
         self.x = 0
         self.y = 0
@@ -22,23 +21,26 @@ class Location:
         return self.next_move
 
     def move(self, direction=None, distance=None):
-        self.previous_locations.append(self.current_location())
         if(direction is None):
             direction = self.next_move[0]
         if(distance is None):
             distance = self.next_move[1]
         self.turn(direction)
-        cardinal = self.cardinal
-        if(cardinal == 'North'):
-            self.y = self.y + distance
-        elif(cardinal == 'South'):
-            self.y = self.y - distance
-        elif(cardinal == 'East'):
-            self.x = self.x + distance
-        elif(cardinal == 'West'):
-            self.x = self.x - distance
+        for i in range(distance):
+            self.move1(self.cardinal)
         self.next_move = None
         return (self.current_location())
+
+    def move1(self, cardinal):
+        self.previous_locations.append(self.current_location())
+        if(cardinal == 'North'):
+            self.y = self.y + 1
+        elif(cardinal == 'South'):
+            self.y = self.y - 1
+        elif(cardinal == 'East'):
+            self.x = self.x + 1
+        elif(cardinal == 'West'):
+            self.x = self.x - 1
         
     def turn(self, direction):
         cardinal = self.cardinal
@@ -70,10 +72,15 @@ if __name__ == '__main__':
     data = f.read()
     moves = re.split(',', data)
     bunny = Location()
+
+    # Part 1, go through all the moves
     for move in moves:
-        if(bunny.current_location() in bunny.previous_locations):
-            print(True)
         bunny.parse_move(move)
-        print(bunny.move())
+        bunny.move()
     print(abs(bunny.x) + abs(bunny.y))
 
+    # Part 2, find first overlapping location
+    for i in reversed(range(len(bunny.previous_locations))):
+        if(bunny.previous_locations[i] in bunny.previous_locations[0:(i-1)]):
+            print(True)
+        print(bunny.previous_locations[i])
