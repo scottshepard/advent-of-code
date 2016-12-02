@@ -78,9 +78,13 @@ if __name__ == '__main__':
         bunny.parse_move(move)
         bunny.move()
     print(abs(bunny.x) + abs(bunny.y))
+    # Correct answer is 246
 
     # Part 2, find first overlapping location
     for i in reversed(range(len(bunny.previous_locations))):
         if(bunny.previous_locations[i] in bunny.previous_locations[0:(i-1)]):
             print(True)
         print(bunny.previous_locations[i])
+    # Corrdinates are printed to the screen. I had to scroll through the 
+    # printout to find the right one. 
+    # Correct answer is (-109, -15), or 124
