@@ -43,6 +43,35 @@
 # Your puzzle input is the instructions from the document you found at the 
 # front desk. What is the bathroom code?
 #
+# --- Part Two ---
+#
+# You finally arrive at the bathroom (it's a several minute walk from the lobby
+# so visitors can behold the many fancy conference rooms and water coolers on 
+# this floor) and go to punch in the code. Much to your bladder's dismay, 
+# the keypad is not at all like you imagined it. Instead, you are confronted 
+# with the result of hundreds of man-hours of bathroom-keypad-design meetings:
+#
+#     1
+#   2 3 4
+# 5 6 7 8 9
+#   A B C
+#     D
+#
+# You still start at "5" and stop when you're at an edge, 
+# but given the same instructions as above, the outcome is very different:
+#
+# You start at "5" and don't move at all (up and left are both edges), 
+# ending at 5.
+# Continuing from "5", you move right twice and down three times 
+# (through "6", "7", "B", "D", "D"), ending at D.
+# Then, from "D", you move five more times 
+# (through "D", "B", "C", "C", "B"), ending at B.
+#
+# Finally, after five more moves, you end at 3.
+# So, given the actual keypad layout, the code would be 5DB3.
+#
+# Using the same instructions in your puzzle input, 
+# what is the correct bathroom code?
 # ----------------------------------------------------------------------------
 
 import re
@@ -50,9 +79,9 @@ import numpy as np
 
 class BathroomCypher:
 
-    def __init__(self, instructions):
+    def __init__(self, instructions, keypad):
         self.instructions = re.split('\n', instructions)
-        self.keypad = Keypad()
+        self.keypad = keypad
         self.solution = []
 
     def solve_cypher(self):
@@ -116,10 +145,52 @@ class Keypad:
     def normalize(self, coordinates):
         return tuple([x if abs(x) <= 1 else np.sign(x) for x in coordinates])
 
+class Keypad2:
+#       1
+#     2 3 4
+#   5 6 7 8 9
+#     A B C
+#       D
+    move_hash = {
+            (1, 'D'): 3,
+            (2, 'D'): 6, (2, 'R'): 3,
+            (3, 'U'): 1, (3, 'D'): 7, (3, 'L'): 2, (3, 'R'): 4,
+            (4, 'D'): 8, (4, 'L'): 3,
+            (5, 'R'): 6,
+            (6, 'U'): 2, (6, 'D'): 'A', (6, 'L'): 5, (6, 'R'): 7,
+            (7, 'U'): 3, (7, 'D'): 'B', (7, 'L'): 6, (7, 'R'): 8,
+            (8, 'U'): 4, (8, 'D'): 'C', (8, 'L'): 7, (8, 'R'): 9,
+            (9, 'L'): 8,
+            ('A', 'U'): 6, ('A', 'R'): 'B',
+            ('B', 'U'): 7, ('B', 'D'): 'D', ('B', 'L'): 'A', ('B', 'R'): 'C',
+            ('C', 'U'): 8, ('C', 'L'): 'B',
+            ('D', 'U'): 'B',
+            }
+
+    def __init__(self):
+        self.loc = 5
+
+    def move(self, direction):
+        key = (self.loc, direction)
+        if(key in Keypad2.move_hash):
+            new_loc = Keypad2.move_hash[key]
+        else:
+            new_loc = self.loc
+        self.loc = new_loc
+        return self.loc
+
+    def number(self):
+        return self.loc
+
 if __name__ == '__main__':
     fileobject = open('inputs/day02.txt')
     data = fileobject.read()
-    bc = BathroomCypher(data)
+    bc = BathroomCypher(data, Keypad())
     bc.solve_cypher()
     print(bc.solution)
+    # Correct answer is 69642
+    bc2 = BathroomCypher(data, Keypad2())
+    bc2.solve_cypher()
+    print(bc2.solution)
+    # Correct answer is 8CB23
 
