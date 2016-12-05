@@ -17,6 +17,26 @@
 #
 # In your puzzle input, how many of the listed triangles are possible?
 #
+# --- Part Two ---
+#
+# Now that you've helpfully marked up their design documents, it occurs to you 
+# that triangles are specified in groups of three vertically. 
+# Each set of three numbers in a column specifies a triangle. 
+# Rows are unrelated.
+#
+# For example, given the following specification, numbers with the same 
+# hundreds digit would be part of the same triangle:
+#
+#  101 301 501
+#  102 302 502
+#  103 303 503
+#  201 401 601
+#  202 402 602
+#  203 403 603
+#
+#  In your puzzle input, and instead reading by columns, 
+#  how many of the listed triangles are possible?
+#
 # ----------------------------------------------------------------------------
 
 import re
@@ -37,15 +57,26 @@ class TriangleList:
         self.triangles.append(Triangle(dims[0], dims[1], dims[2]))
         return dims
 
+    def parse_list2(self):
+        sets = int(len(self.triangle_list) / 3)
+        for i in range(sets):
+            self.parse_set2(self.triangle_list[(i*3):(i*3+3)])
+        
+    def parse_set2(self, set):
+        lines = [re.findall('[0-9]+', line) for line in set]
+        self.triangles.append(Triangle(lines[0][0], lines[1][0], lines[2][0]))
+        self.triangles.append(Triangle(lines[0][1], lines[1][1], lines[2][1]))
+        self.triangles.append(Triangle(lines[0][2], lines[1][2], lines[2][2]))
+
     def valid_triangle_count(self):
         return sum([t.valid() for t in self.triangles])
 
 class Triangle:
 
     def __init__(self, s1, s2, s3):
-        self.s1 = s1
-        self.s2 = s2
-        self.s3 = s3
+        self.s1 = int(s1)
+        self.s2 = int(s2)
+        self.s3 = int(s3)
 
     def sides(self):
         return (self.s1, self.s2, self.s3)
@@ -63,8 +94,12 @@ if __name__ == '__main__':
     data = fileobject.read()
     triangles = TriangleList(data)
     triangles.parse_list()
-    print(triangles.valid_triangle_count())
+    print("Part 1: ", triangles.valid_triangle_count())
     # Correct answer is 917
+    triangles = TriangleList(data)
+    triangles.parse_list2()
+    print("Part 2: ", triangles.valid_triangle_count())
+    # Correct answer is 1649
     
 
 
