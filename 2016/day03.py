@@ -52,14 +52,11 @@ class Triangle:
 
     def valid(self):
         sides = [self.s1, self.s2, self.s3]
-        if(self.s1 == self.s2 or self.s1 == self.s3 or self.s2 == self.s3):
-            return True
-        elif(any([s == 0 for s in sides])):
-            return False
-        else:
-            m = max(sides)
-            smaller_sides = [x for x in sides if x != m]
-            return sum(smaller_sides) > m
+        m = max(sides)
+        m_index = [i for i in range(0, 3) if sides[i]==m][0]
+        smaller_indicies = [i for i in range(0, 3) if i != m_index]
+        smaller_sides = [sides[i] for i in smaller_indicies]
+        return sum(smaller_sides) > m
 
 if __name__ == '__main__':
     fileobject = open('inputs/day03.txt')
