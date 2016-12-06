@@ -44,6 +44,9 @@
 
 from collections import defaultdict
 import re
+from string import ascii_lowercase
+
+letters = list(ascii_lowercase)
 
 def real_room(encrypted_name, checksum):
     return common_five(encrypted_name) == checksum
@@ -61,10 +64,23 @@ def freq_table(list):
     return d
 
 def parse_line(line):
-    room_name = re.match('.*(?=\[)', line).group(0)
+    room_name = re.match('.+(?=\-[0-9])', line).group(0)
     checksum = re.search(r'\[([A-Za-z0-9_]+)\]', line).group(1)
     sector_id = re.search('[0-9]+', line).group(0)
     return room_name, checksum, sector_id
+
+def rotate_letter(letter, n_rotations):
+    if(letter == '-'):
+        return ' '
+    else:
+        i = (letters.index(letter) + n_rotations) % len(letters)
+        return letters[i]
+
+def rotate_room_name(room_name, n_rotations):
+    room_name = list(room_name)
+    if(room_name[len(room_name)-1] == '-'):
+        room_name.pop()
+    return ''.join([rotate_letter(l, n_rotations) for l in room_name])
 
 if __name__ == '__main__':
     fileobject = open('inputs/day04.txt')
@@ -72,11 +88,17 @@ if __name__ == '__main__':
     data = re.split('\n', data)
     sectorsum = 0
     roomcheck = []
+    rooms = []
     for line in data:
         name, cs, sector_id = parse_line(line)
         if(real_room(name, cs)):
-            sectorsum += int(sector_id)
+            sector_id= int(sector_id)
+            sectorsum += sector_id
+            rooms.append((rotate_room_name(name, sector_id), sector_id))
         roomcheck.append(real_room(name, cs))
-    print("Valid room count:", sum(roomcheck))
-    print("Sum of sector_ids of valid rooms:", sectorsum)
+    sector_id = [s for n, s in rooms if n == 'northpole object storage']
+    print("Part 1 - Sum of sector_ids of valid rooms:", sectorsum)
+    # Correct answer is 278221
+    print("Part 2 - sector_id of northpole object storage room", sector_id)
+    # Correct answer is 267
 
