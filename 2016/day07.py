@@ -50,13 +50,27 @@
 import re
 
 def supports_tls(string):
-    nhtxt = nonhypernet_text(string)
-    htxt = hypernet_text(string)
-    a = detect_abba_in_list(nhtxt)
-    b = detect_abba_in_list(htxt)
+    '''Determines is a string supports TLS. It must
+       1. Have an ABBA pair in a nonhypertext string
+       2. Must not have an ABBA pair in a hypertext string'''
+    nonhypernet = nonhypernet_text(string)
+    hypernet = hypernet_text(string)
+    a = detect_abba_in_list(nonhypernet)
+    b = detect_abba_in_list(hypernet)
     return (a and not b)
 
+def supports_ssl(string):
+    '''Determines if a string supports ssl. It must:
+       1. Have an ABA pair in a nonhypertext string
+       2. Have a corresponding BAB pari in a hypertext string'''
+    nhtxt = nonhypernet_text(string)
+    htxt = hypernet_text(string)
+    abas = find_abas_in_list(nhtxt)
+    return any([detect_bab_in_list(htxt, aba) for aba in abas])
+
 def nonhypernet_text(string):
+    '''Returns a list of all nonhypertext, all text not found between
+       square brackets'''
     if re.search('\[', string) is None:
         return string
     between_htxt = re.findall(r"\]([A-Za-z0-9_]+)\[", string)
@@ -68,12 +82,6 @@ def hypernet_text(string):
     '''Return a list of all text found between square brackets
        i.e. [xxyy]asdjfkl[aabbaa] => ['xxyy', 'aabbaa']'''
     return re.findall(r"\[([A-Za-z0-9_]+)\]", string)
-
-def supports_ssl(string):
-    nhtxt = nonhypernet_text(string)
-    htxt = hypernet_text(string)
-    abas = find_abas_in_list(nhtxt)
-    return any([detect_bab_in_list(htxt, aba) for aba in abas])
 
 def detect_abba_in_list(list_strings):
     bools = []
