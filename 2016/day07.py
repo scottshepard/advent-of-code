@@ -81,7 +81,3 @@ if __name__ == '__main__':
     lines = re.split('\n', data)
     print("Part 1:", sum([supports_tls(line) for line in lines]))
     print("Part 1:", sum([supports_ssl(line) for line in lines]))
-    
-
-
-
