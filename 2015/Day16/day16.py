@@ -46,5 +46,49 @@
 #
 # -----------------------------------------------------------------------------
 
+import re
 
+MFCSAM_RESULTS = {
+        'children': 3,
+        'cats': 7,
+        'samoyeds': 2,
+        'pomeranians': 3,
+        'akitas': 0,
+        'vizslas': 0,
+        'goldfish': 5,
+        'trees': 3,
+        'cars': 2,
+        'perfumes':1
+        }
 
+class Sue:
+    
+    def __init__(self, line):
+        self.id, self.things = self.parse_things(line)
+
+    def parse_things(self, things):
+        d = {}
+        items = re.findall('[a-zA-Z]+', things)
+        values = re.findall('[0-9]+', things)
+        for item, value in zip(items, values):
+            d[item] = int(value)
+        sue_id = d['Sue']
+        del d['Sue']
+        return sue_id, d
+
+    def compare_things(self, other_things):
+        result = []
+        for key, value in self.things.items():
+            if key in other_things:
+               result.append(other_things[key] == value)
+        return result
+
+if __name__ == '__main__':
+    fileobject = open('day16.txt')
+    data = fileobject.read()
+    lines = re.split('\n', data)
+    sues = [Sue(line) for line in lines]
+    for sue in sues:
+        if len(sue.things) > 0:
+            if all(sue.compare_things(MFCSAM_RESULTS)):
+                print(sue.id)
