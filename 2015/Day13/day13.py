@@ -127,6 +127,7 @@ if __name__ == '__main__':
             table.add_person(people[i])
         tables.append(table)
     print("Part 1:", max([x.happiness() for x in tables]))
+    # Correct answer is 733
 
     me = Person("Scott")
     for name in names:
@@ -140,5 +141,5 @@ if __name__ == '__main__':
             table.add_person(people[i])
         tables.append(table)
     print("Part 2:", max([x.happiness() for x in tables]))
-
+    # Correct answer is 725
 
