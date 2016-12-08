@@ -41,9 +41,15 @@ if __name__ == '__main__':
     data = fileobject.read()
     containers = [int(x) for x in re.split('\n', data)]
     bools = []
+    lens = []
     for i in range(len(containers)):
         combos = combinations(containers, i+1)
         for combo in combos:
             bools.append(sum(combo) == 150)
+            lens.append(len(combo))
 
+    print("Part 1:", sum(bools))
+    # Correct answer is 1638
 
+    print("Part 2:", len([b for n, b in zip(lens, bools) if b and n == 4]))
+    # Correct answer is 17
