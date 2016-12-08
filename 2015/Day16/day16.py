@@ -44,6 +44,20 @@
 #
 # What is the number of the Sue that got you the gift?
 #
+# --- Part Two ---
+#
+# As you're about to send the thank you note, something in the MFCSAM's 
+# instructions catches your eye. Apparently, it has an outdated 
+# retroencabulator, and so the output from the machine isn't exact values - 
+# some of them indicate ranges.
+#
+# In particular, the cats and trees readings indicates that there are greater 
+# than that many (due to the unpredictable nuclear decay of cat dander and tree
+# pollen), while the pomeranians and goldfish readings indicate that there are 
+# fewer than that many (due to the modial interaction of magnetoreluctance).
+#
+# What is the number of the real Aunt Sue?
+# 
 # -----------------------------------------------------------------------------
 
 import re
@@ -83,6 +97,18 @@ class Sue:
                result.append(other_things[key] == value)
         return result
 
+    def compare_things2(self, other_things):
+        result = []
+        for key, value in self.things.items():
+            if key in other_things:
+                if key in ['cats', 'trees']:
+                    result.append(other_things[key] < value)
+                elif key in ['pomeranians', 'goldfish']:
+                    result.append(other_things[key] > value)
+                else:
+                    result.append(other_things[key] == value)
+        return result
+
 if __name__ == '__main__':
     fileobject = open('day16.txt')
     data = fileobject.read()
@@ -91,4 +117,6 @@ if __name__ == '__main__':
     for sue in sues:
         if len(sue.things) > 0:
             if all(sue.compare_things(MFCSAM_RESULTS)):
+                print(sue.id)
+            if all(sue.compare_things2(MFCSAM_RESULTS)):
                 print(sue.id)
