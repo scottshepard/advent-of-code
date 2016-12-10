@@ -46,46 +46,42 @@
 
 import re
 
-class Bin:
-
-    def __init__(self, id_):
-        self.id_ = id_
-        self.chips = []
-
-    def __repr__(self):
-        return str(self.id_)
-
-    def add_chip(self, chip):
-        self.chips.append(chip)
-        self.chips.sort()
-
 class Bot:
 
-    def __init__(self, id_):
+    def __init__(self, id_, type_='bot'):
         self.id_ = id_
         self.chips = []
+        self.name = type_ + ' ' + str(id_)
 
     def __repr__(self):
-        return str(self.id_)
+        return self.name
+
+    def move(self):
+        if self.at_capacity():
+            if self.chips == [17, 61]:
+                print('Part 1:', self.name, 'compares chip', 
+                      self.chips[0], 'to chip', self.chips[1])
+            self.give_low()
+            self.give_high()
 
     def add_chip(self, chip):
         self.chips.append(chip)
         self.chips.sort()
 
-    def set_low(self, bot_id):
-        self.low_to = bot_id
+    def set_low(self, bot):
+        self.low_to = bot 
 
-    def set_high(self, bot_id):
-        self.high_to = bot_id
+    def set_high(self, bot):
+        self.high_to = bot
 
     def at_capacity(self):
         return len(self.chips) == 2
 
     def give_low(self):
-        return self.chips.pop(0)
+        return self.low_to.add_chip(self.chips.pop(0))
 
     def give_high(self):
-        return self.chips.pop(-1)
+        return self.high_to.add_chip(self.chips.pop(-1))
 
 class Day10:
 
@@ -97,25 +93,62 @@ class Day10:
     def add_bots(self):
         for line in self.lines:
             bot_id = int(re.search('(?<=bot )[0-9]+', line).group(0))
-            bin_search = re.search('(?<=output )[0-9]+', line)
+            bin_ids = re.findall('(?<=output )[0-9]+', line)
             if bot_id not in [bot.id_ for bot in self.bots]:
                 self.bots.append(Bot(bot_id))
-            if bin_search is not None:
-                bin_id = int(bin_search.group(0))
+            for bin_id in bin_ids:
+                bin_id = int(bin_id)
                 if bin_id not in [bin_.id_ for bin_ in self.bins]:
-                    self.bins.append(Bin(bin_id))
+                    self.bins.append(Bot(bin_id, 'bin'))
             bot = self.find_bot(bot_id)
             value = re.search('(?<=value )[0-9]+', line)
             if value is not None:
                 bot.add_chip(int(value.group(0)))
+    
+    def establish_rules(self):
+        for line in self.lines:
+            if re.search('value', line) is None:
+                bot_id = int(re.search('(?<=bot )[0-9]+', line).group(0))
+                bot = self.find_bot(bot_id)
+                low  = re.search('(?<=low to )[a-z]+ [0-9]+', line).group(0)
+                high = re.search('(?<=high to )[a-z]+ [0-9]+', line).group(0)
+                low_id = int(re.search('[0-9]+', low).group(0))
+                high_id = int(re.search('[0-9]+', high).group(0))
+                low_to = re.search('output|bot', low).group(0)
+                high_to = re.search('output|bot', high).group(0)
+                if low_to == 'bot':
+                    bot.set_low(self.find_bot(low_id))
+                elif low_to == 'output':
+                    bot.set_low(self.find_bin(low_id))
+                if high_to == 'bot':
+                    bot.set_high(self.find_bot(high_id))
+                elif high_to == 'output':
+                    bot.set_high(self.find_bin(high_id))
+
+    def proceed(self):
+        while any([bot.at_capacity() for bot in self.bots]):
+            [bot.move() for bot in self.bots if bot.at_capacity()]
 
     def find_bot(self, bot_id):
         return [bot for bot in self.bots if bot.id_ == bot_id][0]
 
+    def find_bin(self, bin_id):
+        return [bin_ for bin_ in self.bins if bin_.id_ == bin_id][0]
+
+    def part2(self, bin_ids):
+        product = 1
+        for bin_id in bin_ids:
+            product = day10.find_bin(bin_id).chips[0] * product
+        return product
+
 if __name__ == '__main__':
-    data = open('inputs/day10_test.txt').read()
+    data = open('inputs/day10.txt').read()
     day10 = Day10(data)
     day10.add_bots()
-    bots = day10.bots
+    day10.establish_rules()
+    day10.proceed()
+    # Part 1 will print out on the screen. 
+    # Correct answer is bot 101
+    bins = day10.bins
     
 
