@@ -90,11 +90,13 @@ import re
 
 class Light:
 
-    def __init__(self, x, y, char):
+    def __init__(self, x, y, char, anchor = False):
         self.x = x
         self.y = y
         self.char = char
         self.on = self.on(char)
+        self.next_state = self.on
+        self.anchor = anchor
 
     def __repr__(self):
         return self.char
@@ -106,16 +108,20 @@ class Light:
             return False
 
     def set_next_state(self, sum_neighbors):
-        if self.on:
-            if sum_neighbors in [2, 3]:
-                self.next_state = True
-            else:
-                 self.next_state = False
+        if self.anchor:
+            print('Here')
+            self.next_state = self.on
         else:
-            if sum_neighbors == 3:
-                 self.next_state = True
+            if self.on:
+                if sum_neighbors in [2, 3]:
+                    self.next_state = True
+                else:
+                     self.next_state = False
             else:
-                 self.next_state = False
+                if sum_neighbors == 3:
+                     self.next_state = True
+                else:
+                     self.next_state = False
 
     def update_next_state(self):
         self.on = self.next_state
@@ -145,7 +151,16 @@ class Grid:
         return sum([sum([l.on for l in row]) for row in self.grid])
 
     def add_light(self, x, y, char):
-        self.grid[y][x] = Light(x, y, char)
+        if self.is_corner(x, y):
+            self.grid[y][x] = Light(x, y, char, True)
+        else:
+            self.grid[y][x] = Light(x, y, char)
+
+    def is_corner(self, x, y):
+        n_cols = self.n_cols
+        n_rows = self.n_rows
+        corners = [(0, 0), (n_cols-1, 0), (0, n_rows-1), (n_cols-1, n_rows-1)]
+        return (x, y) in corners
 
     def get_light(self, x, y):
         if x == -1 or y == -1:
@@ -175,7 +190,7 @@ class Grid:
         for row in self.grid:
             for light in row:
                 light.update_next_state()
-        return self.grid
+        return self
 
 class Day18:
 
@@ -192,8 +207,8 @@ class Day18:
         return self.grid.sum_lights()
 
 if __name__ == '__main__':
-    data = open('day18.txt').read()
+    data = open('day18_test2.txt').read()
     lines = re.split('\n', data)
     day18 = Day18(data)
-    print('Part 1:', day18.run_part_1())
+    # print('Part 1:', day18.run_part_1())
     grid = day18.grid
