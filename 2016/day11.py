@@ -168,3 +168,109 @@
 #
 #
 # -----------------------------------------------------------------------------
+
+import re
+
+class MicroGen:
+    '''This object could be either a microchip or a generator'''
+
+    def __init__(self, element, type_, position):
+        self.element = element
+        self.type_ = type_
+        self.name = (element[0] + type_[0]).upper()
+        self.position = position
+
+    def __repr__(self):
+        return self.name
+
+    def compatible(self, other):
+        if other.type_ == self.type_:
+            return True
+        else:
+            return self.element == other.element
+
+class Floor:
+
+    def __init__(self, number, size):
+        self.number = number
+        self.size = size
+        self.things = ['.'] * size
+
+    def __repr__(self):
+        return ' '.join(['F' + str(self.number)] + 
+                [str(t) for t in self.things])
+
+    def add_thing(self, thing):
+        self.things[thing.position] = thing
+
+    def add_thing(self, thing):
+        self.things[thing.position] = thing
+
+    def remove_thing(self, position):
+        self.things[position] = '.'
+
+class Elevator:
+
+    def __init__(self):
+        self.position = 0
+        things = []
+
+    def __str__(self):
+        return 'E'
+
+    def add_thing(self, thing):
+        if self.at_capacity():
+            return False
+        else:
+            self.things.append(thing)
+            return True
+
+    def at_capacity(self):
+        return len(self.things) == 2
+
+class Building:
+
+    def __init__(self, n_floors):
+        self.floors = [None] * n_floors
+
+    def __repr__(self):
+        return '\n'.join([f.__repr__() for f in reversed(self.floors)])
+
+    def add_floor(self, floor):
+        self.floors[floor.number-1] = floor
+
+    def add_elevator(self, start_floor=1):
+        self.floor(start_floor).add_thing(Elevator())
+        self.elevator_floor = self.floor(start_floor)
+
+    def floor(self, number):
+        return self.floors[number - 1]
+
+    def move_elevator(self, direction):
+        next_floor_num = self.elevator_floor.number + direction
+        if next_floor_num >= 0 and next_floor_num <= len(self.floors):
+            next_floor = self.floor(next_floor_num)
+            elevator_floor = self.elevator_floor
+            elevator = elevator_floor.things[0]
+            elevator_floor.remove_thing(0)
+            next_floor.add_thing(elevator)
+            self.elevator_floor = next_floor
+
+if __name__ == '__main__':
+    data = open('inputs/day11_test.txt').read()
+    lines = data.splitlines()
+
+    # Test input is hard coded. 
+    # TODO: building a parser class for input instructions
+    building = Building(4)
+    building.add_floor(Floor(1, 5))
+    building.add_floor(Floor(2, 5))
+    building.add_floor(Floor(3, 5))
+    building.add_floor(Floor(4, 5))
+    building.add_elevator()
+    building.floor(1).add_thing(MicroGen('hydrogen', 'microchip', 2))
+    building.floor(1).add_thing(MicroGen('lithium', 'microchip', 4))
+    building.floor(2).add_thing(MicroGen('hydrogen', 'generator', 1))
+    building.floor(3).add_thing(MicroGen('lithium', 'generator', 3))
+
+
