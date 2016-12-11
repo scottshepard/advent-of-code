@@ -109,7 +109,6 @@ class Light:
 
     def set_next_state(self, sum_neighbors):
         if self.anchor:
-            print('Here')
             self.next_state = self.on
         else:
             if self.on:
@@ -135,10 +134,11 @@ class Light:
 
 class Grid:
 
-    def __init__(self, n_cols, n_rows, anchor_corners = True):
+    def __init__(self, n_cols, n_rows, anchor_corners = False):
         self.grid = [['' for x in range(n_cols)] for y in range(n_rows)]
         self.n_rows = n_rows
         self.n_cols = n_cols
+        self.anchor_corners = anchor_corners
 
     def __repr__(self):
         grid = self.grid
@@ -151,7 +151,7 @@ class Grid:
         return sum([sum([l.on for l in row]) for row in self.grid])
 
     def add_light(self, x, y, char):
-        if self.is_corner(x, y):
+        if self.anchor_corners and self.is_corner(x, y):
             self.grid[y][x] = Light(x, y, char, True)
         else:
             self.grid[y][x] = Light(x, y, char)
@@ -194,21 +194,24 @@ class Grid:
 
 class Day18:
 
-    def __init__(self, data):
+    def __init__(self, data, anchor_corners = False):
         self.lines = re.split('\n', data)
-        self.grid = Grid(len(self.lines[0]), len(self.lines))
+        self.grid = Grid(len(self.lines[0]), len(self.lines), anchor_corners)
         for j in range(self.grid.n_rows):
             for i in range(self.grid.n_cols):
                 self.grid.add_light(i, j, self.lines[j][i])
 
-    def run_part_1(self):
-        for i in range(100):
+    def steps(self, n):
+        for i in range(n):
             self.grid.step()
         return self.grid.sum_lights()
 
 if __name__ == '__main__':
-    data = open('day18_test2.txt').read()
-    lines = re.split('\n', data)
+    data = open('day18.txt').read()
     day18 = Day18(data)
-    # print('Part 1:', day18.run_part_1())
-    grid = day18.grid
+    print('Part 1:', day18.steps(4))
+
+    data2 = open('day18_2.txt').read()
+    day18_2 = Day18(data2, True)
+    print('Part 2:', day18_2.steps(100))
+    # 1010 is not the correct answer
