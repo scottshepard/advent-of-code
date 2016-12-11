@@ -91,6 +91,8 @@ import re
 class Light:
 
     def __init__(self, x, y, char):
+        self.x = x
+        self.y = y
         self.char = char
         self.on = self.on(char)
 
@@ -103,9 +105,31 @@ class Light:
         else:
             return False
 
+    def set_next_state(self, sum_neighbors):
+        if self.on:
+            if sum_neighbors in [2, 3]:
+                self.next_state = True
+            else:
+                 self.next_state = False
+        else:
+            if sum_neighbors == 3:
+                 self.next_state = True
+            else:
+                 self.next_state = False
+
+    def update_next_state(self):
+        self.on = self.next_state
+        self.update_char(self.on)
+
+    def update_char(self, bool_):
+        if bool_:
+            self.char = '#'
+        else:
+            self.char = '.'
+
 class Grid:
 
-    def __init__(self, n_cols, n_rows):
+    def __init__(self, n_cols, n_rows, anchor_corners = True):
         self.grid = [['' for x in range(n_cols)] for y in range(n_rows)]
         self.n_rows = n_rows
         self.n_cols = n_cols
@@ -117,8 +141,11 @@ class Grid:
     def __getitem__(self, i):
         return self.grid[i]
 
+    def sum_lights(self):
+        return sum([sum([l.on for l in row]) for row in self.grid])
+
     def add_light(self, x, y, char):
-        self.grid[x][y] = Light(x, y, char)
+        self.grid[y][x] = Light(x, y, char)
 
     def get_light(self, x, y):
         if x == -1 or y == -1:
@@ -141,15 +168,32 @@ class Grid:
                     neighbors.append(self.get_light(i, j))
         return [n for n in neighbors if n is not None]
 
+    def step(self):
+        for row in self.grid:
+            for light in row:
+                light.set_next_state(self.sum_neighbors(light.x, light.y))
+        for row in self.grid:
+            for light in row:
+                light.update_next_state()
+        return self.grid
+
 class Day18:
 
-    def __init__(self, input_path):
-        self.lines = re.split('\n', open(input_path).read())
+    def __init__(self, data):
+        self.lines = re.split('\n', data)
         self.grid = Grid(len(self.lines[0]), len(self.lines))
         for j in range(self.grid.n_rows):
             for i in range(self.grid.n_cols):
                 self.grid.add_light(i, j, self.lines[j][i])
 
+    def run_part_1(self):
+        for i in range(100):
+            self.grid.step()
+        return self.grid.sum_lights()
+
 if __name__ == '__main__':
-    day18 = Day18('day18_test.txt')
+    data = open('day18.txt').read()
+    lines = re.split('\n', data)
+    day18 = Day18(data)
+    print('Part 1:', day18.run_part_1())
     grid = day18.grid
