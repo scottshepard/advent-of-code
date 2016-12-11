@@ -209,9 +209,11 @@ class Day18:
 if __name__ == '__main__':
     data = open('day18.txt').read()
     day18 = Day18(data)
-    print('Part 1:', day18.steps(4))
+    print('Part 1:', day18.steps(100))
+    # Correct answer is 1061
+
 
     data2 = open('day18_2.txt').read()
     day18_2 = Day18(data2, True)
     print('Part 2:', day18_2.steps(100))
-    # 1010 is not the correct answer
+    # Correct answer is 1010
