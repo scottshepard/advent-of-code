@@ -203,17 +203,39 @@ class Floor:
     def add_thing(self, thing):
         self.things[thing.position] = thing
 
-    def add_thing(self, thing):
-        self.things[thing.position] = thing
-
     def remove_thing(self, position):
         self.things[position] = '.'
+
+    def remove_elevator(self):
+        if self.has_elevator():
+            self.remove_thing(0)
+        else:
+            raise LookupError('This floor does not have an elevator to remove')
+
+    def has_elevator(self):
+        return type(self.things[0]) is Elevator
+
+    def load_elevator(self, thing):
+        if self.has_elevator():
+            elevator = self.things[0]
+            elevator.add_thing(thing)
+        else:
+            raise LookupError('This floor does not have an elevator to load')
+
+    def clear_floor(self):
+        if self.has_elevator():
+            elevator = self.things[0]
+            for thing in elevator.things:
+                self.remove_thing(thing.postion)
+        else:
+            raise LookupError('This floor does not have an elevator ' + 
+                              'so the floor cannot be cleared.')
 
 class Elevator:
 
     def __init__(self):
         self.position = 0
-        things = []
+        self.things = []
 
     def __str__(self):
         return 'E'
@@ -252,7 +274,7 @@ class Building:
             next_floor = self.floor(next_floor_num)
             elevator_floor = self.elevator_floor
             elevator = elevator_floor.things[0]
-            elevator_floor.remove_thing(0)
+            elevator_floor.remove_elevator()
             next_floor.add_thing(elevator)
             self.elevator_floor = next_floor
 
