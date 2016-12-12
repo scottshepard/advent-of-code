@@ -169,6 +169,7 @@
 #
 # -----------------------------------------------------------------------------
 
+from itertools import combinations
 import re
 
 class MicroGen:
@@ -230,6 +231,13 @@ class Floor:
         else:
             raise LookupError('This floor does not have an elevator ' + 
                               'so the floor cannot be cleared.')
+
+    def is_valid(self):
+        things = [thing for thing in self.things if type(thing) is MicroGen]
+        bools = []
+        for combo in combinations(things, 2):
+            bools.append(combo[0].compatible(combo[1]))
+        return all(bools)
 
 class Elevator:
 
