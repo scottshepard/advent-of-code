@@ -72,17 +72,19 @@ class InstructionParser:
         self.instructions = instructions
         self.next_instruction_i = 0
         self.registers = [Register(x) for x in list('abcd')]
+        self.register('c').cpy(1)
 
     def __repr__(self):
         return str([str(x) for x in self.registers])
 
     def parse_instructions(self, up_to):
         index = 0
-        while index < up_to - 1:
-            print(index)
+        move = 0
+        while index < up_to:
+            print('Move:', move, self, end='\r')
             instruction = self.instructions[index]
             index += self.parse_instruction(instruction)
-        return self
+            move += 1
 
     def parse_instruction(self, instruction):
         method = re.search('cpy|inc|dec|jnz', instruction).group(0)
@@ -111,11 +113,9 @@ class InstructionParser:
                 value = self.register(letter).value
             else:
                 value = int(letter)
-            increment = int(re.search('-?[0-9]+', instruction).group(0))
+            increment = int(re.search('-?[0-9]+$', instruction).group(0))
             if value == 0:
                 increment = 1
-        print(instruction)
-        print(self)
         return increment
 
     def register(self, name):
@@ -124,9 +124,4 @@ class InstructionParser:
 if __name__ == '__main__':
     instructions = open('inputs/day12.txt').read().splitlines()
     ip = InstructionParser(instructions)
-    # ip.parse_instructions(22)
-    
-
-
-
-
+    ip.parse_instructions(23)
