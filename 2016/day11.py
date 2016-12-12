@@ -285,6 +285,11 @@ class Building:
             elevator_floor.remove_elevator()
             next_floor.add_thing(elevator)
             self.elevator_floor = next_floor
+        else:
+            raise IndexError('Cannot move in that direction anymore')
+
+    def is_valid(self):
+        return all([floor.is_valid() for floor in self.floors])
 
 if __name__ == '__main__':
     data = open('inputs/day11_test.txt').read()
