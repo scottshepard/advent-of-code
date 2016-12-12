@@ -40,9 +40,22 @@
 # jnz a 2
 # dec a
 #
-# The above code would set register a to 41, increase its value by 2, decrease its value by 1, and then skip the last dec a (because a is not zero, so the jnz a 2 skips it), leaving register a at 42. When you move past the last instruction, the program halts.
+# The above code would set register a to 41, increase its value by 2, decrease 
+# its value by 1, and then skip the last dec a (because a is not zero, so the 
+# jnz a 2 skips it), leaving register a at 42. When you move past the last 
+# instruction, the program halts.
 #
-# After executing the assembunny code in your puzzle input, what value is left in register a?
+# After executing the assembunny code in your puzzle input, what value is left 
+# in register a?
+#
+#
+# --- Part Two ---
+#
+# As you head down the fire escape to the monorail, you notice it didn't start; 
+# register c needs to be initialized to the position of the ignition key.
+#
+# If you instead initialize register c to be 1, what value is now left in 
+# register a?
 #
 # -----------------------------------------------------------------------------
 
@@ -72,7 +85,6 @@ class InstructionParser:
         self.instructions = instructions
         self.next_instruction_i = 0
         self.registers = [Register(x) for x in list('abcd')]
-        self.register('c').cpy(1)
 
     def __repr__(self):
         return str([str(x) for x in self.registers])
@@ -81,7 +93,8 @@ class InstructionParser:
         index = 0
         move = 0
         while index < up_to:
-            print('Move:', move, self, end='\r')
+            if move % 500000 == 0:
+                print('Move:', move, self, end='\r')
             instruction = self.instructions[index]
             index += self.parse_instruction(instruction)
             move += 1
@@ -124,4 +137,14 @@ class InstructionParser:
 if __name__ == '__main__':
     instructions = open('inputs/day12.txt').read().splitlines()
     ip = InstructionParser(instructions)
-    ip.parse_instructions(23)
+    ip.parse_instructions(len(instructions))
+    # Correct answer is 318077
+    print("Part 1:", ip)
+
+    ip2 = InstructionParser(instructions)
+    ip2.register('c').cpy(1)
+    ip2.parse_instructions(len(instructions))
+    # Correct answer is 9227731
+    print("Part 2:", ip2)
+
+
