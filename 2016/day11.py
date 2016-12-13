@@ -318,14 +318,11 @@ class Building:
     def __repr__(self):
         return '\n'.join([f.__repr__() for f in reversed(self.floors)])
 
-    def __eq__(self, other):
-        bools = []
-        for i in range(0, 4):
-            bools.append(self.floors[i] == other.floors[i])
-        return all(bools)
-
-    def __hash__(self):
+    def __str__(self):
         return '\n'.join([f.__repr__() for f in reversed(self.floors)])
+
+    def __eq__(self, other):
+        return str(self) == str(other)
 
     def add_floor(self, floor):
         self.floors[floor.number-1] = floor
@@ -355,21 +352,24 @@ class Building:
     def is_solved(self):
         return self.floor(len(self.floors)).is_full()
 
-
 class PuzzleSolver:
 
-    def solve(self, building, max_moves, i=0, moves=set()):
-        moves.add(building)
+    def solve(self, building, max_moves, i=0, moves=[]):
+        moves.append(building)
+        unique_moves = []
+        for m in moves:
+            if m not in unique_moves:
+                unique_moves.append(m)
         if i == max_moves or building.is_solved():
-            return moves
+            return unique_moves 
         else:
             next_moves = PuzzleSolver().possible_next_steps(building)
             solutions = []
             for move in next_moves:
-                if move not in moves:
+                if move not in unique_moves:
                     solutions.append(
-                            PuzzleSolver().solve(move, max_moves, i + 1, new_moves))
-            return flatten(solutions)
+                            PuzzleSolver().solve(move, max_moves, i + 1, unique_moves))
+            return solutions
 
     def possible_next_steps(self, building):
         pel = self.possible_elevator_loads(building)
