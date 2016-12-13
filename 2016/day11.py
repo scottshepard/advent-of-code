@@ -166,11 +166,14 @@
 # In your situation, what is the minimum number of steps required to bring all 
 # of the objects to the fourth floor?
 #
-#
 # -----------------------------------------------------------------------------
 
+from copy import deepcopy
 from itertools import combinations
 import re
+
+def flatten(x):
+    return sum(x, [])
 
 class MicroGen:
     '''This object could be either a microchip or a generator'''
@@ -190,22 +193,76 @@ class MicroGen:
         else:
             return self.element == other.element
 
+class Elevator:
+
+    def __init__(self):
+        self.position = 0
+        self.things = []
+
+    def __str__(self):
+        return 'E'
+
+    def __eq__(self, other):
+        return type(self) is type(other)
+
+    def add_thing(self, thing):
+        if self.at_capacity():
+            return False
+        else:
+            self.things.append(thing)
+            return True
+
+    def remove_all_things(self):
+        while len(self.things) > 0:
+            self.things.pop()
+
+    def at_capacity(self):
+        return len(self.things) == 2
+
+    def is_valid(self):
+        if len(self.things) in [0, 1]:
+            return True
+        else:
+            return self.things[0].compatible(self.things[1])
+
 class Floor:
 
     def __init__(self, number, size):
         self.number = number
         self.size = size
         self.things = ['.'] * size
+        self.microchips = []
+        self.generators = []
 
     def __repr__(self):
         return ' '.join(['F' + str(self.number)] + 
                 [str(t) for t in self.things])
 
+    def __eq__(self, other):
+        return all([self.things[i] == other.things[i] for i in range(0, 5)])
+
     def add_thing(self, thing):
         self.things[thing.position] = thing
+        if type(thing) is MicroGen:
+            if thing.type_ == 'microchip':
+                self.microchips.append(thing)
+            elif thing.type_ == 'generator':
+                self.generators.append(thing)
 
     def remove_thing(self, position):
+        thing = self.things[position]
         self.things[position] = '.'
+        if type(thing) is MicroGen:
+            if thing.type_ == 'microchip':
+                self.microchips = [m for m in self.microchips if m != thing]
+            elif thing.type_ == 'generator':
+                self.generators = [g for g in self.generators if g != thing]
+
+    def non_lift_things(self):
+        return [thing for thing in self.things if type(thing) is MicroGen]
+
+    def n_things(self):
+        return len(self.non_lift_things())
 
     def remove_elevator(self):
         if self.has_elevator():
@@ -216,47 +273,42 @@ class Floor:
     def has_elevator(self):
         return type(self.things[0]) is Elevator
 
+    def elevator(self):
+        if self.has_elevator():
+            return self.things[0]
+        else:
+            raise LookupError('This floor does not have an elevator')
+
     def load_elevator(self, thing):
         if self.has_elevator():
-            elevator = self.things[0]
+            elevator = self.elevator()
             elevator.add_thing(thing)
+            self.remove_thing(thing.position)
         else:
             raise LookupError('This floor does not have an elevator to load')
 
-    def clear_floor(self):
+    def unload_elevator(self):
         if self.has_elevator():
-            elevator = self.things[0]
-            for thing in elevator.things:
-                self.remove_thing(thing.postion)
-        else:
-            raise LookupError('This floor does not have an elevator ' + 
-                              'so the floor cannot be cleared.')
+            if self.elevator().things:
+                for thing in self.elevator().things:
+                    self.add_thing(thing)
+                self.elevator().remove_all_things()
 
     def is_valid(self):
-        things = [thing for thing in self.things if type(thing) is MicroGen]
         bools = []
-        for combo in combinations(things, 2):
-            bools.append(combo[0].compatible(combo[1]))
-        return all(bools)
+        microchips = [m.element for m in self.microchips]
+        generators = [g.element for g in self.generators]
+        for g in generators:
+            for m in microchips:
+                if m != g and m not in generators:
+                    return False
+        return True
 
-class Elevator:
+    def is_full(self):
+        return all([type(thing) is MicroGen for thing in self.things])
 
-    def __init__(self):
-        self.position = 0
-        self.things = []
-
-    def __str__(self):
-        return 'E'
-
-    def add_thing(self, thing):
-        if self.at_capacity():
-            return False
-        else:
-            self.things.append(thing)
-            return True
-
-    def at_capacity(self):
-        return len(self.things) == 2
+    def thing_combos(self):
+        return combinations(self.non_lift_things(), 2)
 
 class Building:
 
@@ -265,6 +317,12 @@ class Building:
 
     def __repr__(self):
         return '\n'.join([f.__repr__() for f in reversed(self.floors)])
+
+    def __eq__(self, other):
+        bools = []
+        for i in range(0, 4):
+            bools.append(self.floors[i] == other.floors[i])
+        return all(bools)
 
     def add_floor(self, floor):
         self.floors[floor.number-1] = floor
@@ -291,6 +349,66 @@ class Building:
     def is_valid(self):
         return all([floor.is_valid() for floor in self.floors])
 
+    def is_solved(self):
+        return self.floor(len(self.floors)).is_full()
+
+
+class PuzzleSolver:
+
+    def solve(self, building, i, move_list = []):
+        move_list.append(building)
+        i += -1
+        if i < 0:
+            return move_list
+        else:
+            next_moves = PuzzleSolver().possible_next_steps(building)
+            for move in next_moves:
+                PuzzleSolver().solve(move, i, move_list)
+
+    def possible_next_steps(self, building):
+        pel = self.possible_elevator_loads(building)
+        elevator_moves = [self.possible_elevator_moves(ec) for ec in pel]
+        return flatten(elevator_moves)
+
+    def possible_elevator_loads(self, building):
+        possible_combos = []
+        # Elevators loads 0
+        possible_combos.append(deepcopy(building))
+        # Elevator loads 1
+        floor = building.elevator_floor
+        if floor.n_things() > 0:
+            for thing in floor.non_lift_things():
+                floor.load_elevator(thing)
+                if floor.is_valid() and floor.elevator().is_valid():
+                    possible_combos.append(deepcopy(building))
+                floor.unload_elevator()
+        if floor.n_things() > 1:
+            combos = floor.thing_combos()
+            for combo in combos:
+                floor.load_elevator(combo[0])
+                floor.load_elevator(combo[1])
+                if floor.is_valid() and floor.elevator().is_valid():
+                    possible_combos.append(deepcopy(building))
+                floor.unload_elevator()
+        return possible_combos
+
+    def possible_elevator_moves(self, building):
+        results = []
+        # Move down
+        if building.elevator_floor.number > 1:
+            building_down = deepcopy(building)
+            building_down.move_elevator(-1)
+            building_down.elevator_floor.unload_elevator()
+            if building_down.is_valid():
+                results.append(building_down)
+        if building.elevator_floor.number < 4:
+            building_up = deepcopy(building)
+            building_up.move_elevator(1)
+            building_up.elevator_floor.unload_elevator()
+            if building_up.is_valid():
+                results.append(building_up)
+        return results
+
 if __name__ == '__main__':
     data = open('inputs/day11_test.txt').read()
     lines = data.splitlines()
@@ -307,5 +425,4 @@ if __name__ == '__main__':
     building.floor(1).add_thing(MicroGen('lithium', 'microchip', 4))
     building.floor(2).add_thing(MicroGen('hydrogen', 'generator', 1))
     building.floor(3).add_thing(MicroGen('lithium', 'generator', 3))
-
-
+    pz = PuzzleSolver()
