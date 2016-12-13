@@ -324,6 +324,9 @@ class Building:
             bools.append(self.floors[i] == other.floors[i])
         return all(bools)
 
+    def __hash__(self):
+        return '\n'.join([f.__repr__() for f in reversed(self.floors)])
+
     def add_floor(self, floor):
         self.floors[floor.number-1] = floor
 
@@ -355,17 +358,18 @@ class Building:
 
 class PuzzleSolver:
 
-    def solve(self, building, i, previous_moves=[]):
-        previous_moves.append(building)
-        if i < 0 or building.is_solved():
-            print(i, building.is_solved())
-            return previous_moves
+    def solve(self, building, max_moves, i=0, moves=set()):
+        moves.add(building)
+        if i == max_moves or building.is_solved():
+            return moves
         else:
             next_moves = PuzzleSolver().possible_next_steps(building)
             solutions = []
             for move in next_moves:
-                solutions.append(PuzzleSolver().solve(move, i-1, previous_moves))
-            return solutions
+                if move not in moves:
+                    solutions.append(
+                            PuzzleSolver().solve(move, max_moves, i + 1, new_moves))
+            return flatten(solutions)
 
     def possible_next_steps(self, building):
         pel = self.possible_elevator_loads(building)
