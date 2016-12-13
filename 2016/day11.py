@@ -355,15 +355,17 @@ class Building:
 
 class PuzzleSolver:
 
-    def solve(self, building, i, move_list = []):
-        move_list.append(building)
-        i += -1
-        if i < 0:
-            return move_list
+    def solve(self, building, i, previous_moves=[]):
+        previous_moves.append(building)
+        if i < 0 or building.is_solved():
+            print(i, building.is_solved())
+            return previous_moves
         else:
             next_moves = PuzzleSolver().possible_next_steps(building)
+            solutions = []
             for move in next_moves:
-                PuzzleSolver().solve(move, i, move_list)
+                solutions.append(PuzzleSolver().solve(move, i-1, previous_moves))
+            return solutions
 
     def possible_next_steps(self, building):
         pel = self.possible_elevator_loads(building)
