@@ -23,3 +23,55 @@
 # Your puzzle input is yjdafjpo.
 #
 # ----------------------------------------------------------------------------
+
+from hashlib import md5
+import re
+import sys
+
+def encode(string):
+    return md5(string.encode('utf-8')).hexdigest()
+
+def interesting1(string, n=3):
+    search = re.search('(.)\\1{{{0},}}'.format(n-1), string) 
+    if search is None:
+        return False
+    else:
+        return search.group(0)
+
+def interesting2(string, char, n=5):
+    search = re.search(r'({0})\1{{{1},}}'.format(char, n-1), string) 
+    if search is None:
+        return False
+    else:
+        return search.group(0)
+
+def five_repeats_in_next_1000_hashes(salt, char, index):
+    for j in range(index+1, index+1001):
+        hashed = encode(salt + str(j))
+        second_match_found = interesting2(hashed, char)
+        if second_match_found:
+           return True
+    return False
+
+def solve_day14(salt, n_keys=64):
+    keys = []
+    i = 0
+    while len(keys) < n_keys:
+        hashed = encode(salt + str(i))
+        first_match = interesting1(hashed)
+        if first_match:
+            char = first_match[0]
+            if five_repeats_in_next_1000_hashes(salt, char, i):
+                keys.append(i)
+        i += 1
+    return keys
+
+if __name__ == '__main__':
+    keys = solve_day14(sys.argv[1])
+    print('Part 1:', keys[len(keys)-1])
+
+
+
+
+
+
