@@ -27,9 +27,24 @@
 from hashlib import md5
 import re
 import sys
+sys.setrecursionlimit(3000)
 
-def encode(string):
-    return md5(string.encode('utf-8')).hexdigest()
+digests = {}
+
+def getMD5(salt, i, n=0):
+    key = salt + '_' + str(i) + '_' + str(n)
+    if key in digests:
+        return digests[key] 
+    else:
+        digests[key] = encode(salt + str(i), n)
+        return digests[key]
+
+def encode(string, n=0):
+    hashed = md5(string.encode('utf-8')).hexdigest() 
+    if n == 0:
+       return hashed 
+    else:
+        return encode(hashed, n-1)
 
 def interesting1(string, n=3):
     search = re.search('(.)\\1{{{0},}}'.format(n-1), string) 
@@ -45,33 +60,34 @@ def interesting2(string, char, n=5):
     else:
         return search.group(0)
 
-def five_repeats_in_next_1000_hashes(salt, char, index):
+def five_repeats_in_next_1000_hashes(salt, char, index, hash_times=0):
     for j in range(index+1, index+1001):
-        hashed = encode(salt + str(j))
+        hashed = getMD5(salt, j, hash_times)
         second_match_found = interesting2(hashed, char)
         if second_match_found:
            return True
     return False
 
-def solve_day14(salt, n_keys=64):
+def solve_day14(salt, n_keys=64, hash_times = 0):
     keys = []
     i = 0
     while len(keys) < n_keys:
-        hashed = encode(salt + str(i))
+        hashed = getMD5(salt, i, hash_times)
         first_match = interesting1(hashed)
         if first_match:
             char = first_match[0]
-            if five_repeats_in_next_1000_hashes(salt, char, i):
+            if five_repeats_in_next_1000_hashes(salt, char, i, hash_times):
                 keys.append(i)
         i += 1
     return keys
 
 if __name__ == '__main__':
-    keys = solve_day14(sys.argv[1])
-    print('Part 1:', keys[len(keys)-1])
-
-
-
-
-
+    if(len(sys.argv) < 2):
+        print("This script needs an input string as a", 
+              "command-line argument to work")
+    else:
+        keys = solve_day14(sys.argv[1])
+        print('Part 1:', keys[len(keys)-1])
+        keys2 = solve_day14(sys.argv[1], hash_times=2016)
+        print('Part 2:', keys2[len(keys2)-1])
 
