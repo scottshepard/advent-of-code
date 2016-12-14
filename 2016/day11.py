@@ -187,52 +187,24 @@ class MicroGen:
     def __repr__(self):
         return self.name
 
+    def __eq__(self, other):
+        return self.element == other.element and self.type_ == other.type_
+
     def compatible(self, other):
         if other.type_ == self.type_:
             return True
         else:
             return self.element == other.element
 
-class Elevator:
-
-    def __init__(self):
-        self.position = 0
-        self.things = []
-
-    def __str__(self):
-        return 'E'
-
-    def __eq__(self, other):
-        return type(self) is type(other)
-
-    def add_thing(self, thing):
-        if self.at_capacity():
-            return False
-        else:
-            self.things.append(thing)
-            return True
-
-    def remove_all_things(self):
-        while len(self.things) > 0:
-            self.things.pop()
-
-    def at_capacity(self):
-        return len(self.things) == 2
-
-    def is_valid(self):
-        if len(self.things) in [0, 1]:
-            return True
-        else:
-            return self.things[0].compatible(self.things[1])
-
 class Floor:
 
     def __init__(self, number, size):
         self.number = number
         self.size = size
-        self.things = ['.'] * size
+        self.things = []
         self.microchips = []
         self.generators = []
+        self.has_elevator = False
 
     def __repr__(self):
         return ' '.join(['F' + str(self.number)] + 
@@ -249,66 +221,30 @@ class Floor:
             elif thing.type_ == 'generator':
                 self.generators.append(thing)
 
-    def remove_thing(self, position):
-        thing = self.things[position]
-        self.things[position] = '.'
-        if type(thing) is MicroGen:
-            if thing.type_ == 'microchip':
-                self.microchips = [m for m in self.microchips if m != thing]
-            elif thing.type_ == 'generator':
-                self.generators = [g for g in self.generators if g != thing]
-
-    def non_lift_things(self):
-        return [thing for thing in self.things if type(thing) is MicroGen]
+    def remove_thing(self, thing):
+        self.things = [t for t in self.things if t is not thing]
 
     def n_things(self):
         return len(self.non_lift_things())
 
-    def remove_elevator(self):
-        if self.has_elevator():
-            self.remove_thing(0)
-        else:
-            raise LookupError('This floor does not have an elevator to remove')
-
-    def has_elevator(self):
-        return type(self.things[0]) is Elevator
-
-    def elevator(self):
-        if self.has_elevator():
-            return self.things[0]
-        else:
-            raise LookupError('This floor does not have an elevator')
-
-    def load_elevator(self, thing):
-        if self.has_elevator():
-            elevator = self.elevator()
-            elevator.add_thing(thing)
-            self.remove_thing(thing.position)
-        else:
-            raise LookupError('This floor does not have an elevator to load')
-
-    def unload_elevator(self):
-        if self.has_elevator():
-            if self.elevator().things:
-                for thing in self.elevator().things:
-                    self.add_thing(thing)
-                self.elevator().remove_all_things()
-
-    def is_valid(self):
+    def is_valid(self, things=self.things):
         bools = []
-        microchips = [m.element for m in self.microchips]
-        generators = [g.element for g in self.generators]
+        microchips = [m.element for m in things if m.type_ == 'microchip']
+        generators = [g.element for g in things if g.type_ == 'generator']
         for g in generators:
             for m in microchips:
                 if m != g and m not in generators:
                     return False
         return True
 
-    def is_full(self):
-        return all([type(thing) is MicroGen for thing in self.things])
-
-    def thing_combos(self):
-        return combinations(self.non_lift_things(), 2)
+    def valid_combos(self):
+        combos = []
+        for combo in combinations(self.things):
+            valid = combo[0].compatible(combo[1])
+            if not valid:
+                return False
+            else:
+                return self.valid([t for t in self.things if t not in list(combo)]) 
 
 class Building:
 
@@ -327,25 +263,6 @@ class Building:
     def add_floor(self, floor):
         self.floors[floor.number-1] = floor
 
-    def add_elevator(self, start_floor=1):
-        self.floor(start_floor).add_thing(Elevator())
-        self.elevator_floor = self.floor(start_floor)
-
-    def floor(self, number):
-        return self.floors[number - 1]
-
-    def move_elevator(self, direction):
-        next_floor_num = self.elevator_floor.number + direction
-        if next_floor_num >= 0 and next_floor_num <= len(self.floors):
-            next_floor = self.floor(next_floor_num)
-            elevator_floor = self.elevator_floor
-            elevator = elevator_floor.things[0]
-            elevator_floor.remove_elevator()
-            next_floor.add_thing(elevator)
-            self.elevator_floor = next_floor
-        else:
-            raise IndexError('Cannot move in that direction anymore')
-
     def is_valid(self):
         return all([floor.is_valid() for floor in self.floors])
 
@@ -354,21 +271,17 @@ class Building:
 
 class PuzzleSolver:
 
-    def solve(self, building, max_moves, i=0, moves=[]):
-        moves.append(building)
-        unique_moves = []
-        for m in moves:
-            if m not in unique_moves:
-                unique_moves.append(m)
+    def solve(self, building, max_moves, i=0):
+        if not building.is_valid():
+            return False
         if i == max_moves or building.is_solved():
-            return unique_moves 
+            return True
         else:
             next_moves = PuzzleSolver().possible_next_steps(building)
             solutions = []
             for move in next_moves:
-                if move not in unique_moves:
-                    solutions.append(
-                            PuzzleSolver().solve(move, max_moves, i + 1, unique_moves))
+                solutions.append(
+                        PuzzleSolver().solve(move, max_moves, i + 1))
             return solutions
 
     def possible_next_steps(self, building):
