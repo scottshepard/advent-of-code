@@ -75,6 +75,10 @@
 # Starting with the map in your puzzle input, in a total of 40 rows (including 
 # the starting row), how many safe tiles are there?
 #
+# --- Part Two ---
+#
+# How many safe tiles are there in a total of 400000 rows?
+#
 # ----------------------------------------------------------------------------
 
 import re
@@ -125,3 +129,6 @@ if __name__ == '__main__':
     floor = Floor(first_row)
     floor.add_rows(39)
     print('Part 1:', floor.n_safe())
+    # Correct answer is 1913
+    floor.add_rows(399960)
+    print('Part 2:', floor.n_safe())
