@@ -77,3 +77,51 @@
 #
 # ----------------------------------------------------------------------------
 
+import re
+
+class Floor:
+
+    def __init__(self, first_row, max_rows = 40):
+        self.rows = [first_row]
+
+    def __repr__(self):
+        return ''.join([row + '\n' for row in self.rows])
+
+    def add_rows(self, row_count):
+        for i in range(row_count):
+            self.rows.append(self.new_row(self.rows[-1]))
+
+    def new_row(self, row):
+        new_tiles = []
+        for i in range(len(row)):
+            if i == 0:
+                left = '.'
+            else: 
+                left = row[i-1]
+            if i == len(row)-1:
+                right = '.'
+            else:
+                right = row[i+1]
+            new_tiles.append(self.new_tile(left, row[i], right))
+        return ''.join(new_tiles)
+
+    def new_tile(self, left, center, right):
+        if left == '^' and center == '^' and right == '.':
+            return '^'
+        elif left == '.' and center == '^' and right == '^':
+            return '^'
+        elif left == '^' and center == '.' and right == '.':
+            return '^'
+        elif left == '.' and center == '.' and right == '^':
+            return '^'
+        else:
+            return '.'
+
+    def n_safe(self):
+        return len(re.findall('\.', ''.join(self.rows)))
+
+if __name__ == '__main__':
+    first_row = open('inputs/day18.txt').read().splitlines()[0]
+    floor = Floor(first_row)
+    floor.add_rows(39)
+    print('Part 1:', floor.n_safe())
