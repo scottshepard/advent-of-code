@@ -83,8 +83,31 @@ class Day19:
             self.steal_presents()
         return self.elves[0]
 
+    def index_across(self, i):
+        len_ = len(self.elves)
+        i = i % len_
+        return int(len_ / 2 + i) % len_
+
+    def steal_presents2(self, i):
+        self.elves.pop(self.index_across(i))
+
+    def solve2(self):
+        i = 0
+        while len(self.elves) > 1:
+            self.steal_presents2(i)
+            len_ = len(self.elves)
+            if i == len_:
+                i = 0
+            else:
+                i += 1
+            if len_ % 10000 == 0:
+                print('There are', len(self.elves), 'elves left', end='\r')
+        return self.elves[0]
+
 if __name__ == '__main__':
     input1 = 3014603
     assert(Day19(5).solve() == 3)
     assert(Day19(7).solve() == 7)
     print('Part 1:', Day19(input1).solve())
+    assert(Day19(5).solve2() == 2)
+    assert(Day19(7).solve2() == 5)
