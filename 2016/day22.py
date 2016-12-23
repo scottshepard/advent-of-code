@@ -32,3 +32,52 @@
 # How many viable pairs of nodes are there?
 #
 # ----------------------------------------------------------------------------
+
+import re
+from itertools import permutations
+
+class Node:
+
+    def __init__(self, line):
+        '''Line must be in format 
+           "/dev/grid/node-x0-y0     94T   72T    22T   76%"
+        '''
+        self.x = int(re.search('(?<=x)[0-9]+', line).group(0))
+        self.y = int(re.search('(?<=y)[0-9]+', line).group(0))
+        sizes = [int(t) for t in re.findall('[0-9]+(?=T)', line)]
+        self.size = sizes[0]
+        self.used = sizes[1]
+        self.avail = sizes[2]
+
+    def __repr__(self):
+        metrics = [self.x, self.y, self.size, self.used, self.avail]
+        return '\t'.join([str(m) for m in metrics])
+
+    def valid(self, other):
+        if self.used != 0 and self.used <= other.avail:
+            return True
+        else:
+            return False
+
+class Disc:
+
+    def __init__(self, df_output):
+        df_output.pop(0)
+        self.nodes = []
+        for df_line in df_output:
+            self.nodes.append(Node(df_line))
+
+    def __repr__(self):
+        return '\n'.join([node.__repr__() for node in self.nodes])
+
+    def valid_pairs(self):
+        bools = []
+        perms = permutations(self.nodes, 2)
+        for perm in perms:
+            bools.append(perm[0].valid(perm[1]))
+        return sum(bools)
+
+if __name__ == '__main__':
+    df = open('inputs/day22.txt').read().splitlines()
+    disc = Disc(df)
+    print('Part 1:', disc.valid_pairs())
