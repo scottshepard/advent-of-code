@@ -160,3 +160,4 @@ if __name__ == '__main__':
     print('Part 1:', pg.scramble_password('abcdefgh'))
     
     assert(pg.unscramble_password('hcdefbag') == 'abcdefgh')
+    print('Part 2:', pg.unscramble_password('fbgdceah'))
