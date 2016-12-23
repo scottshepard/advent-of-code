@@ -2,19 +2,19 @@ import re
 
 class PasswordGenerator:
 
-    def __init__(self, rules, pwd):
+    def __init__(self, rules):
         self.rules = rules
-        self.pwd = pwd
 
     def __repr__(self):
         return self.pwd
 
-    def scramble_password(self):
+    def scramble_password(self, pwd):
+        self.pwd = pwd
         for rule in self.rules:
-            self.parse_rule(rule)
+            self.parse_rule_scramble(rule)
         return self.pwd
 
-    def parse_rule(self, rule):
+    def parse_rule_scramble(self, rule):
         rules_regex = 'swap position|swap letter|reverse|rotate based|rotate|move'
         search = re.search(rules_regex, rule).group(0)
         if search == 'swap position':
@@ -95,10 +95,10 @@ class PasswordGenerator:
 
 if __name__ == '__main__':
     test_rules = open('inputs/day21_test.txt').read().splitlines()
-    test_pg = PasswordGenerator(test_rules, 'abcde')
-    assert(test_pg.scramble_password() == 'decab')
+    test_pg = PasswordGenerator(test_rules)
+    assert(test_pg.scramble_password('abcde') == 'decab')
     
     rules = open('inputs/day21.txt').read().splitlines()
-    pg = PasswordGenerator(rules, 'abcdefgh')
-    print('Part 1:', pg.scramble_password())
+    pg = PasswordGenerator(rules)
+    print('Part 1:', pg.scramble_password('abcdefgh'))
     
