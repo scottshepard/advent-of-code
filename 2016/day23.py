@@ -91,7 +91,7 @@ class Interpreter:
 
     def __init__(self, instructions):
         self.instructions = instructions
-        self.next_instruction_i = 0
+        self.index = 0
         self.registers = [Register(x) for x in list('abcd')]
 
     def __repr__(self):
@@ -103,6 +103,9 @@ class Interpreter:
             value = self.register(value).value
         else:
             value = int(value)
+        if self.index + value >= len(self.instructions):
+            self.index += 1
+            return
         instruction2 = self.instructions[self.index+value]
         method = re.search('cpy|inc|dec|jnz|tgl', instruction2).group(0)
         if method == 'inc':
@@ -114,7 +117,7 @@ class Interpreter:
         elif method == 'cpy':
             instruction2 = re.sub('cpy', 'jnz', instruction2)
         self.instructions[self.index + value] = instruction2
-        return 1
+        self.index += 1
 
     def cpy(self, instruction):
         letter = re.search('[a-z]$', instruction).group(0)
@@ -124,59 +127,65 @@ class Interpreter:
             register.cpy(self.register(value).value)
         else:
             register.cpy(int(value))
-        return 1
+        self.index += 1
 
     def inc(self, instruction):
         letter = re.search('[a-z]$', instruction).group(0)
         register = self.register(letter)
         register.inc()
-        return 1
+        self.index += 1
 
     def dec(self, instruction):
         letter = re.search('[a-z]$', instruction).group(0)
         register = self.register(letter)
         register.dec()
-        return 1
+        self.index += 1
 
     def jnz(self, instruction):
-        letter = re.search('(?<=jnz )([a-z]|(-?[0-9]))', instruction).group(0)
-        if letter in list('abcd'):
-            value = self.register(letter).value
+        copy = re.sub('jnz ', '', instruction)
+        values = re.findall('-?[0-9a-z]+', copy)
+        values2 = []
+        for val in values:
+            if val in list('abcd'):
+                values2.append(self.register(val).value)
+            else:
+                values2.append(int(val))
+        if values2[0] == 0:
+            self.index += 1
         else:
-            value = int(letter)
-        increment = int(re.search('-?[0-9]+$', instruction).group(0))
-        if value == 0:
-            increment = 1
-        return increment
+            self.index += values2[1]
 
-    def solve(self, up_to=None, print_ = False):
+    def solve(self, up_to=None):
         if up_to is None:
             up_to = len(self.instructions)
-        self.index = 0
         self.move = 0
         while self.index < up_to:
-            if print_:
-                print('Move:', self.move, self, end='\n')
-            instruction = self.instructions[self.index]
-            self.index += self.parse_instruction(instruction)
+            self.parse_instruction(self.index)
             self.move += 1
+        return self
 
-    def parse_instruction(self, instruction):
+    def parse_instruction(self, index):
+        instruction = self.instructions[index]
         method = re.search('cpy|inc|dec|jnz|tgl', instruction).group(0)
         if method == 'tgl':
-            return self.tgl(instruction)
+            self.tgl(instruction)
         elif method == 'cpy':
-            return self.cpy(instruction)
+            self.cpy(instruction)
         elif method == 'inc':
-            return self.inc(instruction)
+            self.inc(instruction)
         elif method == 'dec':
-            return self.dec(instruction)
+            self.dec(instruction)
         elif method == 'jnz':
-            return self.jnz(instruction)
+            self.jnz(instruction)
+        return self
 
     def register(self, name):
         return [r for r in self.registers if r.name == name][0]
 
 if __name__ == '__main__':
-    instructions = open('inputs/day23_test.txt').read().splitlines()
+    instructions = open('inputs/day23.txt').read().splitlines()
     interp = Interpreter(instructions)
+    interp.register('a').cpy(7)
+    interp.solve()
+    print('Part 1:', interp.register('a').value)
+    
