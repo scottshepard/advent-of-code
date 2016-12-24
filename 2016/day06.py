@@ -55,25 +55,13 @@
 #
 # ----------------------------------------------------------------------------
 
-data = readLines("inputs/day06.txt", warn = FALSE)
+import pandas as pd
 
-commonChar <- function(data, col, func) {
-  chars = unname(sapply(data, function(line) {
-    strsplit(line, "")[[1]][col]
-  }))
-  counts = table(chars)
-  if(func == "max") {
-    key = max(counts)
-  } else if(func == "min") {
-    key = min(counts)
-  }
-  names(counts)[key == counts]
-}
-  
-answer1 = paste(sapply(1:8, function(i) commonChar(data, i, "max")), collapse="")
-print(paste("Part 1:", answer1))
-# Correct answer is liwvqppc
+table = [list(line) for line in open('inputs/day06.txt').read().splitlines()]
+df = pd.DataFrame(table)
 
-answer2 = paste(sapply(1:8, function(i) commonChar(data, i, "min")), collapse="")
-print(paste("Part 2:", answer2))
-# Correct answer is caqfbzl
+part1 = [df.iloc[:, i].value_counts().index[0] for i in range(len(df.columns))]
+print('Part 1:', ''.join(part1))
+
+part2 = [df.iloc[:,i].value_counts().index[-1] for i in range(len(df.columns))]
+print('Part 2:', ''.join(part2))
