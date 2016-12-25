@@ -81,8 +81,8 @@ class Register:
     def cpy(self, value):
         self.value = value
 
-    def inc(self):
-        self.value += 1
+    def inc(self, val=1):
+        self.value += val
 
     def dec(self):
         self.value -= 1
@@ -90,7 +90,7 @@ class Register:
 class Interpreter:
 
     def __init__(self, instructions):
-        self.instructions = instructions
+        self.instructions = list(instructions)
         self.index = 0
         self.registers = [Register(x) for x in list('abcd')]
 
@@ -120,6 +120,17 @@ class Interpreter:
         self.index += 1
 
     def cpy(self, instruction):
+        # Hardcoded to skip the hotspot
+        if self.index == 4:
+            a = self.register('a')
+            b = self.register('b')
+            c = self.register('c')
+            d = self.register('d')
+            a.inc(b.value * d.value)
+            c.cpy(0)
+            d.cpy(0)
+            self.index = 10
+            return 
         letter = re.search('[a-z]$', instruction).group(0)
         register = self.register(letter)
         value = re.search('-?[0-9]+|((?<= )[a-z](?= ))', instruction).group(0)
@@ -188,4 +199,8 @@ if __name__ == '__main__':
     interp.register('a').cpy(7)
     interp.solve()
     print('Part 1:', interp.register('a').value)
-    
+
+    interp2 = Interpreter(instructions)
+    interp2.register('a').cpy(12)
+    interp2.solve()
+    print('Part 2:', interp2.register('a').value)
