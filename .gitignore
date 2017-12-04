@@ -4,3 +4,5 @@
 .DS_Store
 venv*
 *.swp
+*.pyc
+__pycache__/*
