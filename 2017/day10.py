@@ -2,14 +2,19 @@ import os
 
 class KnotHash:
 
-	def __init__(self, nums, input):
+	def __init__(self, input, nums = list(range(256)), dh = True):
 		self.nums = nums
 		self.input = input
 		self.pos = 0
 		self.skip_size = 0
+		self.sparse_hash = self.sparse_hash()
+		if dh:
+			self.hash = self.dense_hash(self.sparse_hash)
 
-	def dense_hash(self):
-		sh = self.sparse_hash()
+	def __repr__(self):
+		return self.hash
+
+	def dense_hash(self, sh):
 		dh = [None] * 16
 		for i in list(range(16)):
 			section = [sh[j] for j in list(range(i*16, (i+1)*16))]
@@ -61,12 +66,14 @@ class KnotHash:
 if __name__ == '__main__':    
     test_data = '3,4,1,5'
     test_nums = [0, 1, 2, 3, 4]
-    print(KnotHash(test_nums, test_data).knot_hash_simple())
+    kh = KnotHash(test_data, test_nums, False)
+    print(kh.sparse_hash)
 
     input = '189,1,111,246,254,2,0,120,215,93,255,50,84,15,94,62'
-    hashed = KnotHash(list(range(256)), input).knot_hash_simple()
+    kh = KnotHash(input)
+    hashed = kh.sparse_hash
     print(hashed[0] * hashed[1])
 
-    kh = KnotHash(list(range(256)), input)
-    print(kh.dense_hash())
+    print(KnotHash(input))
+
 
