@@ -7,5 +7,3 @@ def read_input(file):
     if data[-1] == '':
         data.pop(-1)
     return data
-
-
