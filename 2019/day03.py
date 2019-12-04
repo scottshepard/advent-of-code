@@ -7,7 +7,7 @@ class Wire:
 
     def __init__(self, input):
         self.directions = input.split(',')
-        self.coords = {}
+        self.coords = set()
         self.map_path()
 
     def map_path(self):
@@ -17,26 +17,26 @@ class Wire:
                 mag = int(dir[1:])
                 for i in range(mag):
                     x += 1
-                    self.coords[(x, y)] = True
+                    self.coords.add((x, y))
             elif dir[0] == 'L':
                 mag = int(dir[1:])
                 for i in range(mag):
                     x -= 1
-                    self.coords[(x, y)] = True
+                    self.coords.add((x, y))
             elif dir[0] == 'U':
                 mag = int(dir[1:])
                 for i in range(mag):
                     y += 1
-                    self.coords[(x, y)] = True
+                    self.coords.add((x, y))
             elif dir[0] == 'D':
                 mag = int(dir[1:])
                 for i in range(mag):
                     y -= 1
-                    self.coords[(x, y)] = True
+                    self.coords.add((x, y))
 
 
 def find_intersections(wire1, wire2):
-    return set(wire1.coords.keys()).intersection(set(wire2.coords.keys()))
+    return set(wire1.coords).intersection(set(wire2.coords))
 
 
 
