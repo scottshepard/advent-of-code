@@ -24,25 +24,35 @@ class SolarSystem:
     def count_orbits_in_system(self):
         total_orbits = 0
         for planet in self.map.keys():
-            total_orbits += self.count_orbits_for_planet(planet)
+            total_orbits += len(self.orbits_for_planet(planet, []))
         return total_orbits
 
-    def count_orbits_for_planet(self, planet, orbits=0):
-        if planet in self.map.keys():
-            return self.count_orbits_for_planet(self.map[planet], orbits+1)
+    def orbits_for_planet(self, planet, planets_list=[], stop=''):
+        if planet in self.map.keys() and planet != stop:
+            planets_list.append(planet)
+            return self.orbits_for_planet(self.map[planet], planets_list, stop)
         else:
-            return orbits
+            return planets_list
 
+    def orbital_transfer_count(self, p1, p2):
+        san = self.orbits_for_planet(p1, [])
+        you = self.orbits_for_planet(p2, [])
+        intersections = set(san).intersection(set(you))
+        return pd.Series([san.index(inter) + you.index(inter) for inter in intersections]).min() -2
 
 
 
 if __name__ == '__main__':
     test_input = aoc.read_input('day06_test.txt')
-    test_ss = SolarSystem(test_input)
-    assert(test_ss.count_orbits_in_system()==42)
+    t_ss = SolarSystem(test_input)
+    assert(t_ss.count_orbits_in_system()==42)
 
     input = aoc.read_input('day06.txt')
     ss = SolarSystem(input)
     print('Solution to part 1 is {}'.format(ss.count_orbits_in_system()))
 
+    test_input2 = aoc.read_input('day06_test2.txt')
+    t_ss2 = SolarSystem(test_input2)
+    assert(t_ss2.orbital_transfer_count('SAN', 'YOU')==4)
 
+    print('Solution to part 2 is {}'.format(ss.orbital_transfer_count('SAN', 'YOU')))
