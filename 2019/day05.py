@@ -7,20 +7,20 @@ import pdb
 
 class Intcode:
 
-    def __init__(self, instructions):
-        self.instructions_raw = instructions
-        self.instructions = copy.deepcopy(instructions)
+    def __init__(self, codes):
+        self.codes_raw = codes
+        self.codes = copy.deepcopy(codes)
         self.pos = 0
         self.solved = False
 
     def reset(self):
-        self.instructions = copy.deepcopy(self.instructions_raw)
+        self.codes = copy.deepcopy(self.codes_raw)
         self.solved = False
         self.pos = 0
 
     def adjust_input(self, noun_, verb_):
-        self.instructions[1] = noun_
-        self.instructions[2] = verb_
+        self.codes[1] = noun_
+        self.codes[2] = verb_
 
     def parameter_modes(self, instr):
         instr = str(instr)
@@ -32,23 +32,33 @@ class Intcode:
         elif opcode == 99:
             return [], opcode
 
-    def compute_step(self):
-        instructions = self.instructions
+    def fetch_param(self, parameter, parameter_mode):
+        if parameter_mode == 0:
+            return self.codes[parameter]
+        elif parameter_mode == 1:
+            return parameter
+
+    def compute_step(self, input):
+        codes = self.codes
         pos = self.pos
-        param_modes, opcode = self.parameter_modes(instructions[pos])
-        parameters = self.instructions[pos:(pos+len(param_modes))]
+        param_modes, opcode = self.parameter_modes(codes[pos])
+        parameters = self.codes[pos:(pos+len(param_modes))]
         if opcode == 99:
             self.solved = True
             return
         elif opcode == 1:
-            instructions[instructions[pos+3]] = instructions[instructions[pos+1]] + instructions[instructions[pos+2]]
+            for p, pm in zip(parameters, param_modes):
+
+            codes[codes[pos+3]] = codes[codes[pos+1]] + codes[codes[pos+2]]
             self.pos += 4
         elif opcode == 2:
-            opcode[opcode[pos+3]] = opcode[opcode[pos+1]] * opcode[opcode[pos+2]]
+            codes[codes[pos+3]] = codes[codes[pos+1]] * codes[codes[pos+2]]
             self.pos += 4
         elif opcode == 3:
-            opcode[opcode[pos+1]] = opcode[pos+1]
+            codes[opcode[pos+1]] = codes[input]
             self.pos += 2
+        elif opcode == 4:
+
 
 
         self.opcode = opcode
