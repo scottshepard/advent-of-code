@@ -9,15 +9,14 @@ class IntcodeComputer:
 
     def __init__(self, input):
         self.input = copy.deepcopy(input)
-        self.codes = [int(x) for x in input.split(',')]
-        self.pos = 0
-        self.solved = False
-        self.outputs = []
+        self.reset()
 
     def reset(self):
         self.codes = [int(x) for x in self.input.split(',')]
         self.solved = False
         self.pos = 0
+        self.outputs = []
+        self.output = None
 
     def adjust_input(self, noun_, verb_):
         self.codes[1] = noun_
@@ -122,13 +121,12 @@ class IntcodeComputer:
                 codes[codes[pos + 3]] = 0
             self.pos += 4
 
-
-
     def solve(self, input=None):
         while not self.solved:
             self.compute_step(input)
-        return self.outputs
-
+        if len(self.outputs) > 0:
+            self.output = self.outputs[-1]
+        return self.output
 
 
 if __name__ == '__main__':
@@ -144,18 +142,16 @@ if __name__ == '__main__':
     parameters = ic.codes[(ic.pos+1):(ic.pos+1+len(param_modes))]
 
     ic_test1 = IntcodeComputer('3,0,4,0,99')
-    ic_test1.solve(10)
-    assert ic_test1.outputs == [10]
+    assert ic_test1.solve(10) == 10
 
     ic_test2 = IntcodeComputer('1101,100,-1,4,0')
     ic_test2.solve()
     assert ic_test2.outputs == []
     assert ic_test2.codes == [1101,100,-1,4,99]
 
-    ic.solve(1)
-    print('Solution to Day 5 part 1 is {}'.format(ic.outputs[-1]))
-    assert ic.outputs[-1] == 14155342
+    print('Solution to Day 5 part 1 is {}'.format(ic.solve(1)))
 
+    assert ic.output == 14155342
     ic.reset()
     assert ic.input == input
 
@@ -163,44 +159,39 @@ if __name__ == '__main__':
 
     # Test input 0 should test if input is equal to 8. 1 if true, 0 if false
     x = IntcodeComputer(test_inputs[0])
-    x.solve(1)
-    assert x.outputs[-1] == 0
+    assert x.solve(1) == 0
     x.reset()
-    x.solve(8)
-    assert x.outputs[-1] == 1
+    assert x.solve(8) == 1
 
     # Test input 1 should test if input is less than 8. 1 if true, 0 if false
     x = IntcodeComputer(test_inputs[1])
-    x.solve(1)
-    assert x.outputs[-1] == 1
+    assert x.solve(1) == 1
     x.reset()
-    x.solve(8)
-    assert x.outputs[-1] == 0
+    assert x.solve(8) == 0
     x.reset()
-    x.solve(9)
-    assert x.outputs[-1] == 0
+    assert x.solve(9) == 0
 
     # Test input 2 should test if input is less than 8. 1 if true, 0 if false
     x = IntcodeComputer(test_inputs[2])
-    assert x.solve(8)[-1] == 1
+    assert x.solve(8) == 1
     x.reset()
-    assert x.solve(3)[-1] == 0
+    assert x.solve(3) == 0
     x.reset()
-    assert x.solve(100)[-1] == 0
+    assert x.solve(100) == 0
 
     # Test input 3 should test if input is less than 8. 1 if true, 0 if false
     x = IntcodeComputer(test_inputs[3])
-    assert x.solve(7)[-1] == 1
+    assert x.solve(7) == 1
     x.reset()
-    assert x.solve(80)[-1] == 0
+    assert x.solve(80) == 0
 
     # Test inputs 4 and 5 take an input, output 0 if input is 0 and 1 otherwise
     x = IntcodeComputer(test_inputs[4])
-    assert x.solve(0)[-1] == 0
+    assert x.solve(0) == 0
     x.reset()
-    assert x.solve(1)[-1] == 1
+    assert x.solve(1) == 1
     x.reset()
-    assert x.solve(10)[-1] == 1
+    assert x.solve(10) == 1
 
 
     # This example program uses an input instruction to ask for a single number.
@@ -208,13 +199,11 @@ if __name__ == '__main__':
     # output 1000 if the input value is equal to 8,
     # or output 1001 if the input value is greater than 8.
     x = IntcodeComputer(test_inputs[-1])
-    assert x.solve(7)[-1] == 999
+    assert x.solve(7) == 999
     x.reset()
-    assert x.solve(8)[-1] == 1000
+    assert x.solve(8) == 1000
     x.reset()
-    assert x.solve(100)[-1] == 1001
-
+    assert x.solve(100) == 1001
     ic.reset()
-    ic.solve(5)
-    print('Solution to Day 5 part 2 is {}'.format(ic.outputs[-1]))
 
+    print('Solution to Day 5 part 2 is {}'.format(ic.solve(5)))
