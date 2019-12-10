@@ -54,23 +54,30 @@ class IntcodeComputer:
             For example, the instruction 3,50 would take an input value and store it at address 50.
         Opcode 4 outputs the value of its only parameter. For example, the instruction 4,50 would output the value at
             address 50.
+        Opcode 5 is jump-if-true: if the first parameter is non-zero, it sets the instruction pointer to the value
+            from the second parameter. Otherwise, it does nothing.
+        Opcode 6 is jump-if-false: if the first parameter is zero, it sets the instruction pointer to the value from
+            the second parameter. Otherwise, it does nothing.
+        Opcode 7 is less than: if the first parameter is less than the second parameter, it stores 1 in the position
+            given by the third parameter. Otherwise, it stores 0.
+        Opcode 8 is equals: if the first parameter is equal to the second parameter, it stores 1 in the position given
+            by the third parameter. Otherwise, it stores 0.
         '''
         codes = self.codes
         pos = self.pos
         param_modes, opcode = self.parameter_modes(codes[pos])
+        param_modes.reverse()
         parameters = self.codes[(pos+1):(pos+1+len(param_modes))]
         if opcode == 99:
             self.solved = True
         elif opcode == 1:
             values = []
-            param_modes.reverse()
             for p, pm in zip(parameters, param_modes):
                 values.append(self.fetch_param(p, pm))
             codes[codes[pos+3]] = values[0] + values[1]
             self.pos += 4
         elif opcode == 2:
             values = []
-            param_modes.reverse()
             for p, pm in zip(parameters, param_modes):
                 values.append(self.fetch_param(p, pm))
             codes[codes[pos+3]] = values[0] * values[1]
@@ -112,6 +119,10 @@ if __name__ == '__main__':
 
     ic.solve1(1)
     print('Solution to Day 5 part 1 is {}'.format(ic.outputs[-1]))
+    assert(ic.outputs[-1] == 14155342)
+
+    ic.reset()
+    assert(ic.input == input)
 
 
 
