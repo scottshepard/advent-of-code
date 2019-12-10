@@ -15,7 +15,7 @@ class IntcodeComputer:
         self.outputs = []
 
     def reset(self):
-        self.codes = copy.deepcopy(self.input)
+        self.codes = [int(x) for x in self.input.split(',')]
         self.solved = False
         self.pos = 0
 
@@ -26,18 +26,26 @@ class IntcodeComputer:
     def parameter_modes(self, instr):
         instr = str(instr)
         opcode = int(instr[-2:])
-        if opcode == 1 or opcode == 2:
+        if opcode in [1,2,7,8]:
             return [int(d) for d in list('0' * (3 - len(instr[:-2])) + instr[:-2])], opcode
-        elif opcode == 3 or opcode == 4:
+        elif opcode in [3,4]:
             return [int(d) for d in list('0' * (1 - len(instr[:-2])) + instr[:-2])], opcode
         elif opcode == 99:
             return [], opcode
+        elif opcode in [5,6]:
+            return [int(d) for d in list('0' * (2 - len(instr[:-2])) + instr[:-2])], opcode
 
     def fetch_param(self, parameter, parameter_mode):
         if parameter_mode == 0:
             return self.codes[parameter]
         elif parameter_mode == 1:
             return parameter
+
+    def param_values(self, parameters, param_modes):
+        values = []
+        for p, pm in zip(parameters, param_modes):
+            values.append(self.fetch_param(p, pm))
+        return values
 
     def compute_step(self, input=None):
         '''
@@ -71,15 +79,11 @@ class IntcodeComputer:
         if opcode == 99:
             self.solved = True
         elif opcode == 1:
-            values = []
-            for p, pm in zip(parameters, param_modes):
-                values.append(self.fetch_param(p, pm))
+            values = self.param_values(parameters, param_modes)
             codes[codes[pos+3]] = values[0] + values[1]
             self.pos += 4
         elif opcode == 2:
-            values = []
-            for p, pm in zip(parameters, param_modes):
-                values.append(self.fetch_param(p, pm))
+            values = self.param_values(parameters, param_modes)
             codes[codes[pos+3]] = values[0] * values[1]
             self.pos += 4
         elif opcode == 3:
@@ -89,8 +93,34 @@ class IntcodeComputer:
             value = self.fetch_param(parameters[0], param_modes[0])
             self.outputs.append(value)
             self.pos += 2
+        elif opcode == 5:
+            values = self.param_values(parameters, param_modes)
+            if values[0] != 0:
+                self.pos = values[1]
+            self.pos += 3
+        elif opcode == 6:
+            values = self.param_values(parameters, param_modes)
+            if values[0] == 0:
+                self.pos = values[1]
+            self.pos += 3
+        elif opcode == 7:
+            values = self.param_values(parameters, param_modes)
+            if values[0] < values[1]:
+                codes[codes[pos+3]] = 1
+            else:
+                codes[codes[pos + 3]] = 0
+            self.pos += 4
+        elif opcode == 8:
+            values = self.param_values(parameters, param_modes)
+            if values[0] == values[1]:
+                codes[codes[pos+3]] = 1
+            else:
+                codes[codes[pos + 3]] = 0
+            self.pos += 4
 
-    def solve1(self, input=None):
+
+
+    def solve(self, input=None):
         while not self.solved:
             self.compute_step(input)
         return self.outputs
@@ -100,30 +130,49 @@ class IntcodeComputer:
 if __name__ == '__main__':
     input = aoc.read_input('day05.txt')[0]
     ic = IntcodeComputer(input)
-    assert(ic.parameter_modes(1002) == ([0, 1, 0], 2))
-    assert(ic.parameter_modes(1101) == ([0, 1, 1], 1))
-    assert(ic.parameter_modes(1) == ([0, 0, 0], 1))
-    assert(ic.parameter_modes(3) == ([0], 3))
+    assert ic.parameter_modes(1002) == ([0, 1, 0], 2)
+    assert ic.parameter_modes(1101) == ([0, 1, 1], 1)
+    assert ic.parameter_modes(1) == ([0, 0, 0], 1)
+    assert ic.parameter_modes(3) == ([0], 3)
 
     param_modes, opcode = ic.parameter_modes(ic.codes[ic.pos])
     parameters = ic.codes[(ic.pos+1):(ic.pos+1+len(param_modes))]
 
     ic_test1 = IntcodeComputer('3,0,4,0,99')
-    ic_test1.solve1(10)
-    assert(ic_test1.outputs == [10])
+    ic_test1.solve(10)
+    assert ic_test1.outputs == [10]
 
     ic_test2 = IntcodeComputer('1101,100,-1,4,0')
-    ic_test2.solve1()
-    assert(ic_test2.outputs == [])
-    assert(ic_test2.codes == [1101,100,-1,4,99])
+    ic_test2.solve()
+    assert ic_test2.outputs == []
+    assert ic_test2.codes == [1101,100,-1,4,99]
 
-    ic.solve1(1)
+    ic.solve(1)
     print('Solution to Day 5 part 1 is {}'.format(ic.outputs[-1]))
-    assert(ic.outputs[-1] == 14155342)
+    assert ic.outputs[-1] == 14155342
 
     ic.reset()
-    assert(ic.input == input)
+    assert ic.input == input
 
+    test_inputs = aoc.read_input('day05_test.txt')
 
+    # Test input 0 should test if input is equal to 8. 1 if true, 0 if false
+    x = IntcodeComputer(test_inputs[0])
+    x.solve(1)
+    assert x.outputs[-1] == 0
+    x.reset()
+    x.solve(8)
+    assert x.outputs[-1] == 1
+
+    # Test input 1 should test if input is less than 8. 1 if true, 0 if false
+    x = IntcodeComputer(test_inputs[1])
+    x.solve(1)
+    assert x.outputs[-1] == 1
+    x.reset()
+    x.solve(8)
+    assert x.outputs[-1] == 0
+    x.reset()
+    x.solve(9)
+    assert x.outputs[-1] == 0
 
 
