@@ -23,7 +23,10 @@ class AsteroidBelt:
                 pass
         return asteroids
 
-    def is_asteroid_in_los(self, a1, a2):
+    def is_asteroid_in_los(self, a1, a2, exclude_vaporized=False):
+        if exclude_vaporized:
+            if self.asteroids[a2] > 0:
+                return False
         if a1[0] > a2[0]:
             tmp = copy.deepcopy(a1)
             a1 = copy.deepcopy(a2)
@@ -43,8 +46,11 @@ class AsteroidBelt:
             search = (search[0] - D, search[1] - N)
         return True
 
+    def find_asteroids_in_los(self, base, exclude_vaporized=False):
+        return [asteroid for asteroid in self.asteroids.keys() if self.is_asteroid_in_los(base, asteroid, exclude_vaporized=exclude_vaporized) and asteroid != base]
+
     def count_asteroids_in_los(self, base):
-        return pd.Series([1 if self.is_asteroid_in_los(base, asteroid) else 0 for asteroid in self.asteroids.keys()]).sum() - 1
+        return len(self.find_asteroids_in_los(base))
 
     def find_best_base(self):
         max_los = 0
@@ -54,22 +60,39 @@ class AsteroidBelt:
             if count_los > max_los:
                 max_los = count_los
                 best_asteroid = asteroid
-            self.asteroids[asteroid] = count_los
-        return best_asteroid, max_los
+        return best_asteroid
+
+    def solve1(self):
+        self.base = self.find_best_base()
+        return self.count_asteroids_in_los(self.base)
+
+    def vaporize(self):
+        to_be_vaporized = self.find_asteroids_in_los(self.base)
+        sorted_vaporized = []
+        for asteroid in to_be_vaporized.sorted()
 
 
+        return to_be_vaporized
 
 
 if __name__ == '__main__':
     test1 = aoc.read_input('day10_test1.txt')
-    belt = AsteroidBelt(test1)
-    assert belt.is_asteroid_in_los((0, 4), (0, 1))
-    assert belt.is_asteroid_in_los((0, 4), (2, 4))
-    assert not belt.is_asteroid_in_los((0, 4), (3, 4))
-    assert belt.count_asteroids_in_los((0, 4)) == 7
-    assert belt.count_asteroids_in_los((4, 3)) == 8
-    assert belt.find_best_base() == ((4,3), 8)
+    belt1 = AsteroidBelt(test1)
+    assert belt1.is_asteroid_in_los((0, 4), (0, 1))
+    assert belt1.is_asteroid_in_los((0, 4), (2, 4))
+    assert not belt1.is_asteroid_in_los((0, 4), (3, 4))
+    assert belt1.count_asteroids_in_los((0, 4)) == 7
+    assert belt1.count_asteroids_in_los((4, 3)) == 8
+    assert belt1.find_best_base() == ((4,3))
 
-    input = aoc.read_input('day10.txt')
-    belt = AsteroidBelt(input)
-    print(belt.find_best_base())
+
+    test3 = aoc.read_input('day10_test3.txt')
+    belt3 = AsteroidBelt(test3)
+    belt3.solve1()
+
+
+    # input = aoc.read_input('day10.txt')
+    # belt = AsteroidBelt(input)
+    # print('Solution to Day 10 part I is {}'.format(belt.solve1()))
+
+
