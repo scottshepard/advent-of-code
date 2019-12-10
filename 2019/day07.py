@@ -7,13 +7,15 @@ import pdb
 
 class IntcodeComputer:
 
-    def __init__(self, input):
+    def __init__(self, input, phase_setting=None):
         self.input = copy.deepcopy(input)
         self.reset()
+        self.phase_setting = phase_setting
 
     def reset(self):
         self.codes = [int(x) for x in self.input.split(',')]
         self.solved = False
+        self.halt = False
         self.pos = 0
         self.outputs = []
         self.output = None
@@ -94,6 +96,7 @@ class IntcodeComputer:
             value = self.fetch_param(parameters[0], param_modes[0])
             self.outputs.append(value)
             self.pos += 2
+            self.halt = True
         elif opcode == 5:
             values = self.param_values(parameters, param_modes)
             if values[0] != 0:
@@ -129,6 +132,14 @@ class IntcodeComputer:
             self.output = self.outputs[-1]
         return self.output
 
+    def next(self, input):
+        self.halt = False
+        while not self.halt:
+            self.compute_step(input)
+        if len(self.outputs) > 0:
+            self.output = self.outputs[-1]
+        return self.output
+
 
 class AmplifierChain:
 
@@ -147,6 +158,14 @@ class AmplifierChain:
         i = 0
         for amp in self.amplifiers:
             amp_out = amp.solve(phase_setting[i], amp_out)
+            i += 1
+        return amp_out
+
+    def thruster_signal2(self, phase_setting, first_input=0):
+        amp_out = first_input
+        i = 0
+        for amp in self.amplifiers:
+            amp_out = amp.next(phase_setting[i], amp_out)
             i += 1
         return amp_out
 
@@ -195,3 +214,7 @@ if __name__ == '__main__':
     acs = aoc.read_input('day07.txt')[0]
     ac = AmplifierChain(acs)
     print('Solution to Day 7 Part I is {}'.format(ac.find_max_thruster_signal()))
+
+    # Part 2
+    acs_test2 = aoc.read_input('day07_test2.txt')
+    A = IntcodeComputer(acs_test2[0])
