@@ -5,6 +5,10 @@ import pandas as pd
 from fractions import Fraction
 import pdb
 
+def angle_between(p1, p2):
+    ang1 = np.arctan2(*p1[::-1])
+    ang2 = np.arctan2(*p2[::-1])
+    return np.rad2deg((ang1 - ang2) % (2 * np.pi))
 
 class AsteroidBelt:
 
@@ -69,9 +73,6 @@ class AsteroidBelt:
     def vaporize(self):
         to_be_vaporized = self.find_asteroids_in_los(self.base)
         sorted_vaporized = []
-        for asteroid in to_be_vaporized.sorted()
-
-
         return to_be_vaporized
 
 
@@ -89,7 +90,8 @@ if __name__ == '__main__':
     test3 = aoc.read_input('day10_test3.txt')
     belt3 = AsteroidBelt(test3)
     belt3.solve1()
-
+    v = belt3.vaporize()
+    [angle_between(belt3.base, x) for x in v]
 
     # input = aoc.read_input('day10.txt')
     # belt = AsteroidBelt(input)
