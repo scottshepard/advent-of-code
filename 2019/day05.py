@@ -73,9 +73,11 @@ class IntcodeComputer:
         '''
         codes = self.codes
         pos = self.pos
+        # pdb.set_trace()
         param_modes, opcode = self.parameter_modes(codes[pos])
         param_modes.reverse()
         parameters = self.codes[(pos+1):(pos+1+len(param_modes))]
+        # pdb.set_trace()
         if opcode == 99:
             self.solved = True
         elif opcode == 1:
@@ -97,12 +99,14 @@ class IntcodeComputer:
             values = self.param_values(parameters, param_modes)
             if values[0] != 0:
                 self.pos = values[1]
-            self.pos += 3
+            else:
+                self.pos += 3
         elif opcode == 6:
             values = self.param_values(parameters, param_modes)
             if values[0] == 0:
                 self.pos = values[1]
-            self.pos += 3
+            else:
+                self.pos += 3
         elif opcode == 7:
             values = self.param_values(parameters, param_modes)
             if values[0] < values[1]:
@@ -130,6 +134,7 @@ class IntcodeComputer:
 if __name__ == '__main__':
     input = aoc.read_input('day05.txt')[0]
     ic = IntcodeComputer(input)
+
     assert ic.parameter_modes(1002) == ([0, 1, 0], 2)
     assert ic.parameter_modes(1101) == ([0, 1, 1], 1)
     assert ic.parameter_modes(1) == ([0, 0, 0], 1)
@@ -175,4 +180,41 @@ if __name__ == '__main__':
     x.solve(9)
     assert x.outputs[-1] == 0
 
+    # Test input 2 should test if input is less than 8. 1 if true, 0 if false
+    x = IntcodeComputer(test_inputs[2])
+    assert x.solve(8)[-1] == 1
+    x.reset()
+    assert x.solve(3)[-1] == 0
+    x.reset()
+    assert x.solve(100)[-1] == 0
+
+    # Test input 3 should test if input is less than 8. 1 if true, 0 if false
+    x = IntcodeComputer(test_inputs[3])
+    assert x.solve(7)[-1] == 1
+    x.reset()
+    assert x.solve(80)[-1] == 0
+
+    # Test inputs 4 and 5 take an input, output 0 if input is 0 and 1 otherwise
+    x = IntcodeComputer(test_inputs[4])
+    assert x.solve(0)[-1] == 0
+    x.reset()
+    assert x.solve(1)[-1] == 1
+    x.reset()
+    assert x.solve(10)[-1] == 1
+
+
+    # This example program uses an input instruction to ask for a single number.
+    # The program will then output 999 if the input value is below 8,
+    # output 1000 if the input value is equal to 8,
+    # or output 1001 if the input value is greater than 8.
+    x = IntcodeComputer(test_inputs[-1])
+    assert x.solve(7)[-1] == 999
+    x.reset()
+    assert x.solve(8)[-1] == 1000
+    x.reset()
+    assert x.solve(100)[-1] == 1001
+
+    ic.reset()
+    ic.solve(5)
+    print('Solution to Day 5 part 2 is {}'.format(ic.outputs[-1]))
 
