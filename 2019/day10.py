@@ -69,3 +69,7 @@ if __name__ == '__main__':
     assert belt.count_asteroids_in_los((0, 4)) == 7
     assert belt.count_asteroids_in_los((4, 3)) == 8
     assert belt.find_best_base() == ((4,3), 8)
+
+    input = aoc.read_input('day10.txt')
+    belt = AsteroidBelt(input)
+    print(belt.find_best_base())
