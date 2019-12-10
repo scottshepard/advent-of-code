@@ -12,6 +12,7 @@ class IntcodeComputer:
         self.codes = [int(x) for x in input.split(',')]
         self.pos = 0
         self.solved = False
+        self.outputs = []
 
     def reset(self):
         self.codes = copy.deepcopy(self.input)
@@ -26,9 +27,9 @@ class IntcodeComputer:
         instr = str(instr)
         opcode = int(instr[-2:])
         if opcode == 1 or opcode == 2:
-            return [int(d) for d in list('0' * (5 - len(instr)) + instr[:-2])], opcode
+            return [int(d) for d in list('0' * (3 - len(instr[:-2])) + instr[:-2])], opcode
         elif opcode == 3 or opcode == 4:
-            return [int(d) for d in list('0' * (2 - len(instr)) + instr[:-2])], opcode
+            return [int(d) for d in list('0' * (1 - len(instr[:-2])) + instr[:-2])], opcode
         elif opcode == 99:
             return [], opcode
 
@@ -39,6 +40,21 @@ class IntcodeComputer:
             return parameter
 
     def compute_step(self, input=None):
+        '''
+        :param input: An int to get things rolling
+        Opcode 1 adds together numbers read from two positions and stores the result in a third position.
+            The three integers immediately after the opcode tell you these three positions -
+            the first two indicate the positions from which you should read the input values,
+            and the third indicates the position at which the output should be stored.
+            For example, if your Intcode computer encounters 1,10,20,30, it should read the values at positions 10 and 20,
+            add those values, and then overwrite the value at position 30 with their sum.
+        Opcode 2 works exactly like opcode 1, except it multiplies the two inputs instead of adding them.
+            Again, the three integers after the opcode indicate where the inputs and outputs are, not their values.
+        Opcode 3 takes a single integer as input and saves it to the position given by its only parameter.
+            For example, the instruction 3,50 would take an input value and store it at address 50.
+        Opcode 4 outputs the value of its only parameter. For example, the instruction 4,50 would output the value at
+            address 50.
+        '''
         codes = self.codes
         pos = self.pos
         param_modes, opcode = self.parameter_modes(codes[pos])
@@ -47,23 +63,31 @@ class IntcodeComputer:
             self.solved = True
         elif opcode == 1:
             values = []
+            param_modes.reverse()
             for p, pm in zip(parameters, param_modes):
                 values.append(self.fetch_param(p, pm))
             codes[codes[pos+3]] = values[0] + values[1]
             self.pos += 4
         elif opcode == 2:
             values = []
+            param_modes.reverse()
             for p, pm in zip(parameters, param_modes):
                 values.append(self.fetch_param(p, pm))
             codes[codes[pos+3]] = values[0] * values[1]
             self.pos += 4
         elif opcode == 3:
-            codes[opcode[pos+1]] = codes[input]
+            codes[codes[pos+1]] = input
             self.pos += 2
         elif opcode == 4:
             value = self.fetch_param(parameters[0], param_modes[0])
+            self.outputs.append(value)
             self.pos += 2
-            return value
+
+    def solve1(self, input=None):
+        while not self.solved:
+            self.compute_step(input)
+        return self.outputs
+
 
 
 if __name__ == '__main__':
@@ -71,15 +95,24 @@ if __name__ == '__main__':
     ic = IntcodeComputer(input)
     assert(ic.parameter_modes(1002) == ([0, 1, 0], 2))
     assert(ic.parameter_modes(1101) == ([0, 1, 1], 1))
+    assert(ic.parameter_modes(1) == ([0, 0, 0], 1))
     assert(ic.parameter_modes(3) == ([0], 3))
-
-    '1101, 100, -1, 4, 0'
 
     param_modes, opcode = ic.parameter_modes(ic.codes[ic.pos])
     parameters = ic.codes[(ic.pos+1):(ic.pos+1+len(param_modes))]
 
-    test_input = '3,0,4,0,99'
-    ic_test = IntcodeComputer(test_input)
+    ic_test1 = IntcodeComputer('3,0,4,0,99')
+    ic_test1.solve1(10)
+    assert(ic_test1.outputs == [10])
+
+    ic_test2 = IntcodeComputer('1101,100,-1,4,0')
+    ic_test2.solve1()
+    assert(ic_test2.outputs == [])
+    assert(ic_test2.codes == [1101,100,-1,4,99])
+
+    ic.solve1(1)
+    print('Solution to Day 5 part 1 is {}'.format(ic.outputs[-1]))
+
 
 
 
