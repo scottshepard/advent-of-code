@@ -5,13 +5,6 @@ class IntcodeComputer:
 
     def __init__(self, source, phase_setting=None):
         self.source_raw = copy.deepcopy(source)
-        self.reset()
-        self.phase_setting = phase_setting
-        if phase_setting is not None:
-            self.inputs.append(phase_setting)
-            self.compute_step()
-
-    def reset(self):
         self.source_code = [int(x) for x in self.source_raw.split(',')]
         self.solved = False
         self.halt = False
@@ -19,6 +12,10 @@ class IntcodeComputer:
         self.inputs =[]
         self.outputs = []
         self.output = None
+        self.phase_setting = phase_setting
+        if phase_setting is not None:
+            self.inputs.append(phase_setting)
+            self.compute_step()
 
     def adjust_input(self, noun_, verb_):
         self.source_code[1] = noun_
@@ -277,12 +274,85 @@ class TestIntcodeComputer:
         C.next()
         assert C.output == 14155342
 
+    def test_opcodes_5_6():
+        # Test Opcodes 5 & 6
+
+        # Both tests output 0 if input is 0 (either from next or phase setting) and 1 otherwise
+        E = IntcodeComputer('3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9')
+        outputs, solved = E.next([0])
+        assert outputs == [0]
+        E = IntcodeComputer('3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9')
+        outputs, solved = E.next([100])
+        assert outputs == [1]
+
+        F = IntcodeComputer('3,3,1105,-1,9,1101,0,0,12,4,12,99,1', 0)
+        outputs, solved = F.next([1])
+        assert outputs == [0]
+        F = IntcodeComputer('3,3,1105,-1,9,1101,0,0,12,4,12,99,1', 16)
+        outputs, solved = F.next([0])
+        assert outputs == [1]
+
+        x = '3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99'
+        G = IntcodeComputer(x)
+        outputs, solved = G.next([100])
+        assert outputs == [1001]
+        G = IntcodeComputer(x)
+        outputs, solved = G.next([-6])
+        assert outputs == [999]
+        G = IntcodeComputer(x)
+        outputs, solved = G.next([8])
+        assert outputs == [1000]
+
+
+    def test_opcodes_7_8():
+        A = IntcodeComputer('3,9,8,9,10,9,4,9,99,-1,8', 5)
+        outputs, solved = A.next()
+        assert outputs == [0]
+        assert solved
+        A = IntcodeComputer('3,9,8,9,10,9,4,9,99,-1,8', 8)
+        outputs, solved = A.next()
+        assert outputs == [1]
+        assert solved
+
+        # If input is less than 8 return 1 else 0
+        B = IntcodeComputer('3,9,7,9,10,9,4,9,99,-1,8', 10)
+        outputs, solved = B.next()
+        assert outputs == [0]
+        assert solved
+        B = IntcodeComputer('3,9,7,9,10,9,4,9,99,-1,8', 6)
+        outputs, solved = B.next()
+        assert outputs == [1]
+        assert solved
+
+        # If input is equal to 8 return 1 else 0
+        C = IntcodeComputer('3,3,1108,-1,8,3,4,3,99', 100)
+        outputs, solved = C.next()
+        assert outputs == [0]
+        assert solved
+        C = IntcodeComputer('3,3,1108,-1,8,3,4,3,99', 8)
+        outputs, solved = C.next()
+        assert outputs == [1]
+        assert solved
+
+        # If input is less than 8 return 1 else 0
+        D = IntcodeComputer('3,9,7,9,10,9,4,9,99,-1,8', 8)
+        outputs, solved = D.next()
+        assert outputs == [0]
+        assert solved
+        D = IntcodeComputer('3,9,7,9,10,9,4,9,99,-1,8', 0)
+        outputs, solved = D.next()
+        assert outputs == [1]
+        assert solved
+
 
 if __name__ == '__main__':
     import pdb
 
     TestIntcodeComputer.test_opcodes_1_2()
     TestIntcodeComputer.test_opcodes_3_4()
+    TestIntcodeComputer.test_opcodes_5_6()
+    TestIntcodeComputer.test_opcodes_7_8()
 
-
+    # Test Opcodes 7 & 8
+    # If input is equal to 8 return 1 else 0
 
