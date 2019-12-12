@@ -11,6 +11,8 @@ class IntcodeComputer:
         self.input = copy.deepcopy(input)
         self.reset()
         self.phase_setting = phase_setting
+        if phase_setting is not None:
+            self.compute_step(phase_setting)
 
     def reset(self):
         self.codes = [int(x) for x in self.input.split(',')]
@@ -68,7 +70,7 @@ class IntcodeComputer:
         Opcode 6 is jump-if-false: if the first parameter is zero, it sets the instruction pointer to the value from
             the second parameter. Otherwise, it does nothing.
         Opcode 7 is less than: if the first parameter is less than the second parameter, it stores 1 in the position
-            given by the third parameter. Otherwise, it stores 0.
+            given by the third parameter. Otherwise, codit stores 0.
         Opcode 8 is equals: if the first parameter is equal to the second parameter, it stores 1 in the position given
             by the third parameter. Otherwise, it stores 0.
         '''
@@ -138,22 +140,28 @@ class IntcodeComputer:
             self.compute_step(input)
         if len(self.outputs) > 0:
             self.output = self.outputs[-1]
-        return self.output
+        return self.output, self.solved
 
 
 class AmplifierChain:
 
-    def __init__(self, control_software, n_amplifiers=5):
+    def __init__(self, control_software, n_amplifiers=5, phase_setting=None):
         self.n_amplifiers = n_amplifiers
         self.acs_raw = copy.deepcopy(control_software)
-        self.reset()
+        self.reset(phase_setting)
 
-    def reset(self):
+    def reset(self, phase_setting=None):
         self.acs = copy.deepcopy(self.acs_raw)
-        self.amplifiers = [IntcodeComputer(self.acs) for x in range(self.n_amplifiers)]
+        self.amplifiers = []
+        for x in range(self.n_amplifiers):
+            if phase_setting is None:
+                ps = None
+            else:
+                ps = phase_setting[x]
+            self.amplifiers.append(IntcodeComputer(self.acs, x))
 
     def thruster_signal(self, phase_setting, first_input=0):
-        self.reset()
+        self.reset(phase_setting)
         amp_out = first_input
         i = 0
         for amp in self.amplifiers:
@@ -161,11 +169,14 @@ class AmplifierChain:
             i += 1
         return amp_out
 
-    def thruster_signal2(self, phase_setting, first_input=0):
+    def thruster_signal2(self, first_input=0):
+        self.reset(phase_setting)
         amp_out = first_input
+        solved = False
         i = 0
-        for amp in self.amplifiers:
-            amp_out = amp.next(phase_setting[i], amp_out)
+        while not solved:
+            amp = self.amplifiers[i % 5]
+            amp_out, solved = amp.next(amp_out)
             i += 1
         return amp_out
 
@@ -217,4 +228,5 @@ if __name__ == '__main__':
 
     # Part 2
     acs_test2 = aoc.read_input('day07_test2.txt')
-    A = IntcodeComputer(acs_test2[0])
+    ac2 = AmplifierChain(acs_test2[0], phase_setting=[9,8,7,6,5])
+    ac2.thruster_signal2(0)
