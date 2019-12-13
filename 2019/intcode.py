@@ -303,7 +303,6 @@ class TestIntcodeComputer:
         outputs, solved = G.next([8])
         assert outputs == [1000]
 
-
     def test_opcodes_7_8():
         A = IntcodeComputer('3,9,8,9,10,9,4,9,99,-1,8', 5)
         outputs, solved = A.next()
