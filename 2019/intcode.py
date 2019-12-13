@@ -91,20 +91,22 @@ class IntcodeComputer:
             self.halt = True
         elif opcode == 1:
             values = self.param_values(parameters, param_modes)
-            self.source_code[values[2]] = values[0] + values[1]
+            self.source_code[self.source_code[pos+3]] = values[0] + values[1]
             self.pos += 4
         elif opcode == 2:
             values = self.param_values(parameters, param_modes)
-            self.source_code[values[2]] = values[0] * values[1]
+            self.source_code[self.source_code[pos+3]] = values[0] * values[1]
             self.pos += 4
         elif opcode == 3:
-            value = self.fetch_param(parameters[0], param_modes[0])
             if len(self.inputs) > 0:
                 input = self.inputs.pop(0)
             else:
                 self.halt = True
                 return
-            self.source_code[value] = input
+            if param_modes[0] == 2:
+                self.source_code[self.source_code[pos + 1] + self.relative_base] = input
+            else:
+                self.source_code[self.source_code[pos + 1]] = input
             self.pos += 2
         elif opcode == 4:
             value = self.fetch_param(parameters[0], param_modes[0])
@@ -127,16 +129,16 @@ class IntcodeComputer:
         elif opcode == 7:
             values = self.param_values(parameters, param_modes)
             if values[0] < values[1]:
-                self.source_code[values[2]] = 1
+                self.source_code[self.source_code[pos+3]] = 1
             else:
-                self.source_code[values[2]] = 0
+                self.source_code[self.source_code[pos + 3]] = 0
             self.pos += 4
         elif opcode == 8:
             values = self.param_values(parameters, param_modes)
             if values[0] == values[1]:
-                self.source_code[values[2]] = 1
+                self.source_code[self.source_code[pos+3]] = 1
             else:
-                self.source_code[values[2]] = 0
+                self.source_code[self.source_code[pos + 3]] = 0
             self.pos += 4
         elif opcode == 9:
             value = self.fetch_param(parameters[0], param_modes[0])
@@ -383,14 +385,19 @@ if __name__ == '__main__':
 
     TestIntcodeComputer.test_opcodes_1_2()
     TestIntcodeComputer.test_opcodes_3_4()
-    #TestIntcodeComputer.test_opcodes_5_6()
-    #TestIntcodeComputer.test_opcodes_7_8()
-    #TestIntcodeComputer.test_amplifier_chain()
-
+    TestIntcodeComputer.test_opcodes_5_6()
+    TestIntcodeComputer.test_opcodes_7_8()
+    TestIntcodeComputer.test_amplifier_chain()
+    #
     A = IntcodeComputer('109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99')
     assert A.next()[0] == [109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99]
-
+    #
     B = IntcodeComputer('1102,34915192,34915192,7,4,7,99,0')
     assert B.next()[0][0] == 1219070632396864
 
+    C = IntcodeComputer('109,1,203,11,109,1,204,10,99')
+    C.next([16])
+    assert C.output == 16
+
+#    C = IntcodeComputer('104,1125899906842624,99')
 
