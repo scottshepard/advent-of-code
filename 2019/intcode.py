@@ -73,7 +73,6 @@ class IntcodeComputer:
         param_modes, opcode = self.parameter_modes(self.source_code[pos])
         param_modes.reverse()
         parameters = self.source_code[(pos+1):(pos+1+len(param_modes))]
-        # pdb.set_trace()
         if opcode == 99:
             self.solved = True
             self.halt = True
@@ -129,6 +128,7 @@ class IntcodeComputer:
     def next(self, inputs=[]):
         self.halt = False
         self.inputs = inputs
+        self.outputs = []
         while not self.halt:
             self.compute_step()
         return self.outputs, self.solved
@@ -153,14 +153,16 @@ class AmplifierChain:
         return amp_out
 
     def thruster_signal2(self, first_input=0):
-        amp_out = first_input
+        amp_out = [first_input]
         solved = False
         i = 0
         while not solved:
             amp = self.amplifiers[i % 5]
             amp_out, solved = amp.next(amp_out)
+            if i % 5 != 4:
+                solved = False
             i += 1
-        return amp_out
+        return amp_out[-1]
 
 
 class TestIntcodeComputer:
@@ -348,10 +350,19 @@ class TestIntcodeComputer:
 if __name__ == '__main__':
     import pdb
 
-    TestIntcodeComputer.test_opcodes_1_2()
-    TestIntcodeComputer.test_opcodes_3_4()
-    TestIntcodeComputer.test_opcodes_5_6()
-    TestIntcodeComputer.test_opcodes_7_8()
-    TestIntcodeComputer.test_amplifier_chain()
+    #TestIntcodeComputer.test_opcodes_1_2()
+    #TestIntcodeComputer.test_opcodes_3_4()
+    #TestIntcodeComputer.test_opcodes_5_6()
+    #TestIntcodeComputer.test_opcodes_7_8()
+    #TestIntcodeComputer.test_amplifier_chain()
 
+    ac5 = AmplifierChain('3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5', [9,8,7,6,5])
+    assert ac5.thruster_signal2(0) == 139629729
 
+    txt = '''
+    3,52,1001,52,-5,52,3,53,1,52,56,54,1007,54,5,55,1005,55,26,1001,54,
+    -5,54,1105,1,12,1,53,54,53,1008,54,0,55,1001,55,1,55,2,53,55,53,4,
+    53,1001,56,-1,56,1005,56,6,99,0,0,0,0,10
+    '''
+    ac6 = AmplifierChain(txt, [9,7,8,5,6])
+    assert ac6.thruster_signal2(0) == 18216
