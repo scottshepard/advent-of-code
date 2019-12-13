@@ -50,7 +50,7 @@ class IntcodeComputer:
         elif parameter_mode == 1:
             return parameter
         elif parameter_mode == 2:
-            if parameter + self.relative_base > max(list(self.source_code.keys())):
+            if (parameter + self.relative_base) not in list(self.source_code.keys()):
                 return 0
             else:
                 return self.source_code[parameter + self.relative_base]
