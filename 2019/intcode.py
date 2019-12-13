@@ -86,16 +86,21 @@ class IntcodeComputer:
         param_modes, opcode = self.parameter_modes(self.source_code[pos])
         param_modes.reverse()
         parameters = self.source_code[(pos+1):(pos+1+len(param_modes))]
+        if opcode in [1,2,7,8]:
+            if param_modes[-1] == 2:
+                storage_loc1278 = self.source_code[pos+3] + self.relative_base
+            else:
+                storage_loc1278 = self.source_code[pos+3]
         if opcode == 99:
             self.solved = True
             self.halt = True
         elif opcode == 1:
             values = self.param_values(parameters, param_modes)
-            self.source_code[self.source_code[pos+3]] = values[0] + values[1]
+            self.source_code[storage_loc1278] = values[0] + values[1]
             self.pos += 4
         elif opcode == 2:
             values = self.param_values(parameters, param_modes)
-            self.source_code[self.source_code[pos+3]] = values[0] * values[1]
+            self.source_code[storage_loc1278] = values[0] * values[1]
             self.pos += 4
         elif opcode == 3:
             if len(self.inputs) > 0:
@@ -129,16 +134,16 @@ class IntcodeComputer:
         elif opcode == 7:
             values = self.param_values(parameters, param_modes)
             if values[0] < values[1]:
-                self.source_code[self.source_code[pos+3]] = 1
+                self.source_code[storage_loc1278] = 1
             else:
-                self.source_code[self.source_code[pos + 3]] = 0
+                self.source_code[storage_loc1278] = 0
             self.pos += 4
         elif opcode == 8:
             values = self.param_values(parameters, param_modes)
             if values[0] == values[1]:
-                self.source_code[self.source_code[pos+3]] = 1
+                self.source_code[storage_loc1278] = 1
             else:
-                self.source_code[self.source_code[pos + 3]] = 0
+                self.source_code[storage_loc1278] = 0
             self.pos += 4
         elif opcode == 9:
             value = self.fetch_param(parameters[0], param_modes[0])
@@ -379,6 +384,29 @@ class TestIntcodeComputer:
         ac6 = AmplifierChain(txt, [9, 7, 8, 5, 6])
         assert ac6.thruster_signal2(0) == 18216
 
+    def test_relative_mode():
+
+        A = IntcodeComputer('109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99')
+        assert A.next()[0] == [109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99]
+
+        B = IntcodeComputer('1102,34915192,34915192,7,4,7,99,0')
+        assert B.next()[0][0] == 1219070632396864
+
+        C = IntcodeComputer('109,1,203,11,109,1,204,10,99')
+        C.next([16])
+        assert C.output == 16
+
+        D = IntcodeComputer('109,1,203,11,209,8,204,1,99,10,0,42,0')
+        D.next([16])
+        assert D.output == 16
+
+        E = IntcodeComputer('109,1,21108,1,0,7,99,0,1')
+        E.next([12])
+        assert E.source_code[8] == 0
+        E = IntcodeComputer('109,1,21108,1,1,7,99,0,0')
+        E.next([12])
+        assert E.source_code[8] == 1
+
 
 if __name__ == '__main__':
     import pdb
@@ -388,16 +416,4 @@ if __name__ == '__main__':
     TestIntcodeComputer.test_opcodes_5_6()
     TestIntcodeComputer.test_opcodes_7_8()
     TestIntcodeComputer.test_amplifier_chain()
-    #
-    A = IntcodeComputer('109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99')
-    assert A.next()[0] == [109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99]
-    #
-    B = IntcodeComputer('1102,34915192,34915192,7,4,7,99,0')
-    assert B.next()[0][0] == 1219070632396864
-
-    C = IntcodeComputer('109,1,203,11,109,1,204,10,99')
-    C.next([16])
-    assert C.output == 16
-
-#    C = IntcodeComputer('104,1125899906842624,99')
-
+    TestIntcodeComputer.test_relative_mode()
