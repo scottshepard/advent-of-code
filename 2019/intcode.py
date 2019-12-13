@@ -340,6 +340,10 @@ class TestIntcodeComputer:
         ac3 = AmplifierChain(txt, [1, 0, 4, 3, 2])
         assert ac3.thruster_signal(0) == 65210
 
+        # Day 7 part 1 solution
+        ac4 = AmplifierChain(read_input('day07.txt'), [2,3,0,4,1])
+        assert ac4.thruster_signal(0) == 24405
+
 
 if __name__ == '__main__':
     import pdb
