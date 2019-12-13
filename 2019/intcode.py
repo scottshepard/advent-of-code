@@ -6,9 +6,11 @@ class IntcodeComputer:
     def __init__(self, source, phase_setting=None):
         self.source_raw = copy.deepcopy(source)
         self.source_code = [int(x) for x in self.source_raw.split(',')]
+        self.expand()
         self.solved = False
         self.halt = False
         self.pos = 0
+        self.relative_base = 0
         self.inputs =[]
         self.outputs = []
         self.output = None
@@ -16,6 +18,15 @@ class IntcodeComputer:
         if phase_setting is not None:
             self.inputs.append(phase_setting)
             self.compute_step()
+
+    def expand(self):
+        current_size = len(self.source_code)
+        max_possible_size = max(self.source_code)
+        if current_size < max_possible_size:
+            new_arr = [0] * max_possible_size
+            for i in range(current_size):
+                new_arr[i] = self.source_code[i]
+            self.source_code = new_arr
 
     def adjust_input(self, noun_, verb_):
         self.source_code[1] = noun_
@@ -26,7 +37,7 @@ class IntcodeComputer:
         opcode = int(instr[-2:])
         if opcode in [1,2,7,8]:
             return [int(d) for d in list('0' * (3 - len(instr[:-2])) + instr[:-2])], opcode
-        elif opcode in [3,4]:
+        elif opcode in [3,4,9]:
             return [int(d) for d in list('0' * (1 - len(instr[:-2])) + instr[:-2])], opcode
         elif opcode == 99:
             return [], opcode
@@ -38,6 +49,8 @@ class IntcodeComputer:
             return self.source_code[parameter]
         elif parameter_mode == 1:
             return parameter
+        elif parameter_mode == 2:
+            return self.source_code[parameter + self.relative_base]
 
     def param_values(self, parameters, param_modes):
         values = []
@@ -78,19 +91,20 @@ class IntcodeComputer:
             self.halt = True
         elif opcode == 1:
             values = self.param_values(parameters, param_modes)
-            self.source_code[self.source_code[pos+3]] = values[0] + values[1]
+            self.source_code[values[2]] = values[0] + values[1]
             self.pos += 4
         elif opcode == 2:
             values = self.param_values(parameters, param_modes)
-            self.source_code[self.source_code[pos+3]] = values[0] * values[1]
+            self.source_code[values[2]] = values[0] * values[1]
             self.pos += 4
         elif opcode == 3:
+            value = self.fetch_param(parameters[0], param_modes[0])
             if len(self.inputs) > 0:
                 input = self.inputs.pop(0)
             else:
                 self.halt = True
                 return
-            self.source_code[self.source_code[pos+1]] = input
+            self.source_code[value] = input
             self.pos += 2
         elif opcode == 4:
             value = self.fetch_param(parameters[0], param_modes[0])
@@ -113,17 +127,21 @@ class IntcodeComputer:
         elif opcode == 7:
             values = self.param_values(parameters, param_modes)
             if values[0] < values[1]:
-                self.source_code[self.source_code[pos+3]] = 1
+                self.source_code[values[2]] = 1
             else:
-                self.source_code[self.source_code[pos + 3]] = 0
+                self.source_code[values[2]] = 0
             self.pos += 4
         elif opcode == 8:
             values = self.param_values(parameters, param_modes)
             if values[0] == values[1]:
-                self.source_code[self.source_code[pos+3]] = 1
+                self.source_code[values[2]] = 1
             else:
-                self.source_code[self.source_code[pos + 3]] = 0
+                self.source_code[values[2]] = 0
             self.pos += 4
+        elif opcode == 9:
+            value = self.fetch_param(parameters[0], param_modes[0])
+            self.relative_base += value
+            self.pos += 2
 
     def next(self, inputs=[]):
         self.halt = False
@@ -173,31 +191,31 @@ class TestIntcodeComputer:
         # Intcode A tests opcode 1, 2 then stops
         # Test Opcode 1
         A.compute_step()
-        assert A.source_code == [1, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50]
+        assert A.source_code[:12] == [1, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50]
         assert A.solved == False
         # Test Opcode 2
         A.compute_step()
-        assert A.source_code == [3500, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50]
+        assert A.source_code[:12] == [3500, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50]
         assert A.solved == False
         # Should be done now
         A.compute_step()
-        assert A.source_code == [3500, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50]
+        assert A.source_code[:12] == [3500, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50]
         assert A.solved
 
         # Now using the "next" function which should iterate until it reaches
         # An input instruction with no input or a stop command.
         A = IntcodeComputer('1,9,10,3,2,3,11,0,99,30,40,50')
-        assert A.source_code == [1,9,10,3,2,3,11,0,99,30,40,50]
+        assert A.source_code[:12] == [1,9,10,3,2,3,11,0,99,30,40,50]
         assert A.solved == False
         # Test Opcode 2
         A.next()
-        assert A.source_code == [3500, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50]
+        assert A.source_code[:12] == [3500, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50]
         assert A.solved
 
         # Intcode B adds 1 to 1 then stops
         B = IntcodeComputer('1,0,0,0,99')
         B.compute_step()
-        assert B.source_code == [2, 0, 0, 0, 99]
+        assert B.source_code[:5] == [2, 0, 0, 0, 99]
         assert B.solved == False
         B.compute_step()
         assert B.solved
@@ -205,14 +223,14 @@ class TestIntcodeComputer:
         # Intcode C multiplies 3 * 2 then stops
         C = IntcodeComputer('2,3,0,3,99')
         C.compute_step()
-        assert C.source_code == [2, 3, 0, 6, 99]
+        assert C.source_code[:5] == [2, 3, 0, 6, 99]
         C.compute_step()
         assert C.solved
 
         # Intcode D multiplies 99 * 99 then stops
         D = IntcodeComputer('2,4,4,5,99,0')
         D.compute_step()
-        assert D.source_code == [2, 4, 4, 5, 99, 9801]
+        assert D.source_code[:6] == [2, 4, 4, 5, 99, 9801]
         D.compute_step()
         assert D.solved
 
@@ -220,16 +238,16 @@ class TestIntcodeComputer:
         E = IntcodeComputer('1,1,1,4,99,5,6,0,99')
         E = IntcodeComputer('1,1,1,4,99,5,6,0,99')
         E.compute_step()
-        assert E.source_code == [1, 1, 1, 4, 2, 5, 6, 0, 99]
+        assert E.source_code[:9] == [1, 1, 1, 4, 2, 5, 6, 0, 99]
         E.compute_step()
-        assert E.source_code == [30, 1, 1, 4, 2, 5, 6, 0, 99]
+        assert E.source_code[:9] == [30, 1, 1, 4, 2, 5, 6, 0, 99]
 
     def test_opcodes_3_4():
         # Test 3 & 4. Opcode A should output what is input and then stop.
         A = IntcodeComputer('3,0,4,0,99')
         A.inputs = [10]
         A.compute_step()
-        assert A.source_code == [10, 0, 4, 0, 99]
+        assert A.source_code[:5] == [10, 0, 4, 0, 99]
         x = A.compute_step()
         assert x == 10
         A.compute_step()
@@ -239,13 +257,13 @@ class TestIntcodeComputer:
 
         A = IntcodeComputer('3,0,4,0,99')
         A.next([10])
-        assert A.source_code == [10, 0, 4, 0, 99]
+        assert A.source_code[:5] == [10, 0, 4, 0, 99]
         assert A.outputs == [10]
         assert A.solved
 
         B = IntcodeComputer('1101,100,-1,4,0')
         B.compute_step()
-        assert B.source_code == [1101, 100, -1, 4, 99]
+        assert B.source_code[:5] == [1101, 100, -1, 4, 99]
         assert B.pos == 4
         assert B.solved == False
         B.compute_step()
@@ -254,7 +272,7 @@ class TestIntcodeComputer:
         # Test Day 5 input
         C = IntcodeComputer('3,7,1,8,6,6,1100,1,238,225', 101)
         C.compute_step()
-        assert C.source_code == [3, 7, 1, 8, 6, 6, 1338, 101, 238, 225]
+        assert C.source_code[:10] == [3, 7, 1, 8, 6, 6, 1338, 101, 238, 225]
         C = IntcodeComputer(read_input('day05.txt')[0], 1)
         C.next()
         assert C.output == 14155342
@@ -365,8 +383,14 @@ if __name__ == '__main__':
 
     TestIntcodeComputer.test_opcodes_1_2()
     TestIntcodeComputer.test_opcodes_3_4()
-    TestIntcodeComputer.test_opcodes_5_6()
-    TestIntcodeComputer.test_opcodes_7_8()
-    TestIntcodeComputer.test_amplifier_chain()
+    #TestIntcodeComputer.test_opcodes_5_6()
+    #TestIntcodeComputer.test_opcodes_7_8()
+    #TestIntcodeComputer.test_amplifier_chain()
+
+    A = IntcodeComputer('109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99')
+    assert A.next()[0] == [109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99]
+
+    B = IntcodeComputer('1102,34915192,34915192,7,4,7,99,0')
+    assert B.next()[0][0] == 1219070632396864
 
 
