@@ -136,32 +136,23 @@ class IntcodeComputer:
 
 class AmplifierChain:
 
-    def __init__(self, control_software, n_amplifiers=5, phase_setting=None):
-        self.n_amplifiers = n_amplifiers
-        self.acs_raw = copy.deepcopy(control_software)
-        self.reset(phase_setting)
-
-    def reset(self, phase_setting=None):
-        self.acs = copy.deepcopy(self.acs_raw)
+    def __init__(self, control_software, phase_setting=None, n_amplifiers=5):
+        self.acs = copy.deepcopy(control_software)
         self.amplifiers = []
-        for x in range(self.n_amplifiers):
-            if phase_setting is None:
-                ps = None
-            else:
-                ps = phase_setting[x]
-            self.amplifiers.append(IntcodeComputer(self.acs, x))
+        for x in range(n_amplifiers):
+            ps = phase_setting[x]
+            self.amplifiers.append(IntcodeComputer(self.acs, ps))
 
-    def thruster_signal(self, phase_setting, first_input=0):
-        self.reset(phase_setting)
+    def thruster_signal(self, first_input=0):
         amp_out = first_input
         i = 0
         for amp in self.amplifiers:
-            amp_out = amp.solve(phase_setting[i], amp_out)
+            outputs, _ = amp.next([amp_out])
+            amp_out = outputs[-1]
             i += 1
         return amp_out
 
     def thruster_signal2(self, first_input=0):
-        self.reset(phase_setting)
         amp_out = first_input
         solved = False
         i = 0
@@ -170,14 +161,6 @@ class AmplifierChain:
             amp_out, solved = amp.next(amp_out)
             i += 1
         return amp_out
-
-    def find_max_thruster_signal(self, signal_digits=[0,1,2,3,4]):
-        self.reset()
-        self.thruster_signals = []
-        perms = permutations(signal_digits)
-        for perm in list(perms):
-            self.thruster_signals.append(self.thruster_signal(perm))
-        return pd.Series(self.thruster_signals).max()
 
 
 class TestIntcodeComputer:
@@ -304,6 +287,7 @@ class TestIntcodeComputer:
         assert outputs == [1000]
 
     def test_opcodes_7_8():
+        # If input is equal to 8 return 1 else 0
         A = IntcodeComputer('3,9,8,9,10,9,4,9,99,-1,8', 5)
         outputs, solved = A.next()
         assert outputs == [0]
@@ -343,6 +327,19 @@ class TestIntcodeComputer:
         assert outputs == [1]
         assert solved
 
+    def test_amplifier_chain():
+        txt = '3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0'
+        ac0 = AmplifierChain(txt, [4, 3, 2, 1, 0])
+        assert ac0.thruster_signal(0) == 43210
+
+        txt = '3,23,3,24,1002,24,10,24,1002,23,-1,23,101,5,23,23,1,24,23,23,4,23,99,0,0'
+        ac1 = AmplifierChain(txt, [0, 1, 2, 4, 3])
+        assert ac1.thruster_signal(0) == 54312
+
+        txt = '3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0'
+        ac3 = AmplifierChain(txt, [1, 0, 4, 3, 2])
+        assert ac3.thruster_signal(0) == 65210
+
 
 if __name__ == '__main__':
     import pdb
@@ -351,7 +348,6 @@ if __name__ == '__main__':
     TestIntcodeComputer.test_opcodes_3_4()
     TestIntcodeComputer.test_opcodes_5_6()
     TestIntcodeComputer.test_opcodes_7_8()
+    TestIntcodeComputer.test_amplifier_chain()
 
-    # Test Opcodes 7 & 8
-    # If input is equal to 8 return 1 else 0
 
