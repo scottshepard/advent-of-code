@@ -46,14 +46,14 @@ class HullPaintingRobot:
                 return 'RT'
         elif direction == 'LT':
             if int == 1:
-                return 'DN'
-            elif int == 0:
                 return 'UP'
+            elif int == 0:
+                return 'DN'
         elif direction == 'RT':
             if int == 1:
-                return 'UP'
-            elif int == 0:
                 return 'DN'
+            elif int == 0:
+                return 'UP'
 
     def move(self):
         if self.direction == 'UP':
@@ -72,3 +72,5 @@ robot = HullPaintingRobot(input)
 
 while not robot.solved:
     robot.next()
+
+print("Solutio to Day 11 Part I is {}".format(len(list(robot.hull.values()))))
