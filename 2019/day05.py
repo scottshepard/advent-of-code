@@ -1,8 +1,5 @@
-import advent_of_code as aoc
 import copy
-import numpy as np
-import pandas as pd
-import pdb
+from utils import read_input
 
 
 class IntcodeComputer:
@@ -130,7 +127,7 @@ class IntcodeComputer:
 
 
 if __name__ == '__main__':
-    input = aoc.read_input('day05.txt')[0]
+    input = read_input('day05.txt')[0]
     ic = IntcodeComputer(input)
 
     assert ic.parameter_modes(1002) == ([0, 1, 0], 2)
@@ -155,7 +152,7 @@ if __name__ == '__main__':
     ic.reset()
     assert ic.input == input
 
-    test_inputs = aoc.read_input('day05_test.txt')
+    test_inputs = read_input('day05_test.txt')
 
     # Test input 0 should test if input is equal to 8. 1 if true, 0 if false
     x = IntcodeComputer(test_inputs[0])

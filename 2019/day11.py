@@ -1,9 +1,9 @@
-from utils import read_input
-from intcode import IntcodeComputer
 import copy
-
 import numpy as np
 from matplotlib import pyplot as plt
+from utils import read_input
+from intcode import IntcodeComputer
+
 
 class HullPaintingRobot:
 
@@ -76,6 +76,7 @@ while not robot.solved:
     robot.next()
 
 print("Solutiom to Day 11 Part I is {}".format(len(list(robot.hull.values()))))
+
 
 robot = HullPaintingRobot(input, starting_panel = 1)exi
 while not robot.solved:

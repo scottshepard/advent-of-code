@@ -1,5 +1,5 @@
-import advent_of_code as aoc
 import copy
+from utils import read_input
 
 
 def format_input(input_):
@@ -72,13 +72,13 @@ class Intcode:
 
 
 if __name__ == '__main__':
-    test_inputs = aoc.read_input('day02_test.txt')
+    test_inputs = read_input('day02_test.txt')
     test_inputs = [format_input(i) for i in test_inputs]
     for ti in test_inputs:
         intcode = Intcode(ti)
         print('Test input {0} solution is {1}'.format(ti, intcode.solve1()))
 
-    input = format_input(aoc.read_input('day02.txt')[0])
+    input = format_input(read_input('day02.txt')[0])
     intcode = Intcode(input)
     intcode.adjust_input(12, 2)
     print('Step 1 solution is {}'.format(intcode.solve1()))

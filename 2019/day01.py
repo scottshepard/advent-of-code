@@ -1,6 +1,6 @@
 from math import floor
 import numpy as np
-import advent_of_code as aoc
+from utils import read_input
 
 
 def calculate_fuel(mass):
@@ -30,6 +30,6 @@ def solve02(input_):
 
 
 if __name__ == '__main__':
-    input = aoc.read_input('day01.txt')
+    input = read_input('day01.txt')
     print('Answer to part 1 is {}'.format(solve01(input)))
     print('Answer to part 2 is {}'.format(solve02(input)))

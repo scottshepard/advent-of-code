@@ -1,8 +1,9 @@
-from utils import read_input
 import copy
 import numpy as np
 import pandas as pd
 from fractions import Fraction
+from utils import read_input
+
 
 class AsteroidBelt:
 
