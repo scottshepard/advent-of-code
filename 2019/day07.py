@@ -1,10 +1,8 @@
-import copy
-from utils import read_input
 from itertools import permutations
 import pandas as pd
-import pdb
-
+from utils import read_input
 from intcode import IntcodeComputer, AmplifierChain
+
 
 def find_max_thruster_signal(input_code, signal_digits=[0,1,2,3,4], part=1):
     thruster_signals = []

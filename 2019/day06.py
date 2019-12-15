@@ -1,8 +1,7 @@
-import advent_of_code as aoc
 import copy
-import numpy as np
 import pandas as pd
-import pdb
+from utils import read_input
+
 
 class SolarSystem:
 
@@ -43,15 +42,15 @@ class SolarSystem:
 
 
 if __name__ == '__main__':
-    test_input = aoc.read_input('day06_test.txt')
+    test_input = read_input('day06_test.txt')
     t_ss = SolarSystem(test_input)
     assert(t_ss.count_orbits_in_system()==42)
 
-    input = aoc.read_input('day06.txt')
+    input = read_input('day06.txt')
     ss = SolarSystem(input)
     print('Solution to part 1 is {}'.format(ss.count_orbits_in_system()))
 
-    test_input2 = aoc.read_input('day06_test2.txt')
+    test_input2 = read_input('day06_test2.txt')
     t_ss2 = SolarSystem(test_input2)
     assert(t_ss2.orbital_transfer_count('SAN', 'YOU')==4)
 

@@ -1,6 +1,7 @@
 from utils import read_input
 import copy
 
+
 class IntcodeComputer:
 
     def __init__(self, source, phase_setting=None):

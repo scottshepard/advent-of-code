@@ -1,7 +1,3 @@
-import advent_of_code as aoc
-import numpy as np
-import pandas as pd
-import pdb
 
 def is_valid_password(pwd, part2=False):
     adjacent_digits = False

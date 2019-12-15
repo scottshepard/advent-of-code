@@ -1,8 +1,9 @@
-import advent_of_code as aoc
 import copy
 import numpy as np
 import pandas as pd
-import pdb
+from matplotlib import pyplot as plt
+from utils import read_input
+
 
 class SpaceImageDecoder:
 
@@ -60,15 +61,14 @@ class SpaceImageDecoder:
 
 
 if __name__ == '__main__':
-    test_input = aoc.read_input('day08_test.txt')
+    test_input = read_input('day08_test.txt')
     t1_sid = SpaceImageDecoder(test_input[0], 3, 2)
     t2_sid = SpaceImageDecoder(test_input[1], 2, 2)
 
-    input = aoc.read_input('day08.txt')[0]
+    input = read_input('day08.txt')[0]
     sid = SpaceImageDecoder(input, 25, 6)
     print('Solution to part 1 is {}'.format(sid.solve1()))
 
-    from matplotlib import pyplot as plt
     img = sid.decode_image()
     plt.imshow(img, interpolation='nearest')
     plt.savefig('day08_part2.png')

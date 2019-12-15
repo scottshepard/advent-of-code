@@ -1,7 +1,6 @@
-import advent_of_code as aoc
 import numpy as np
 import pandas as pd
-import pdb
+from utils import read_input
 
 
 class Wire:
@@ -70,12 +69,12 @@ def solve2(input1, input2):
     return pd.Series(steps).min()
 
 if __name__ == '__main__':
-    test_inputs = aoc.read_input('day03_test.txt')
-    print('Solution to test input 1 is {}'.format(solve1(test_inputs[0], test_inputs[1])))
-    print('Solution to test input 2 is {}'.format(solve1(test_inputs[3], test_inputs[4])))
-    print('Solution to test input 3 is {}'.format(solve1(test_inputs[6], test_inputs[7])))
+    test_inputs = read_input('day03_test.txt')
+    assert solve1(test_inputs[0], test_inputs[1]) == 6
+    assert solve1(test_inputs[3], test_inputs[4]) == 159
+    assert solve1(test_inputs[6], test_inputs[7]) == 135
 
-    input = aoc.read_input('day03.txt')
+    input = read_input('day03.txt')
     print('Solution to part 1 is {}'.format(solve1(input[0], input[1])))
     print('Solution to part 2 is {}'.format(solve2(input[0], input[1])))
 
