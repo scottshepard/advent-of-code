@@ -1,20 +1,15 @@
-import advent_of_code as aoc
+from utils import read_input
 import copy
 import numpy as np
 import pandas as pd
 from fractions import Fraction
-import pdb
-
-def angle_between(p1, p2):
-    ang1 = np.arctan2(*p1[::-1])
-    ang2 = np.arctan2(*p2[::-1])
-    return np.rad2deg((ang1 - ang2) % (2 * np.pi))
 
 class AsteroidBelt:
 
     def __init__(self, map_input):
         self.map = pd.DataFrame([list(row) for row in map_input])
         self.asteroids = self.find_asteroids()
+        self.vaporized = []
 
     def find_asteroids(self):
         asteroids = {}
@@ -22,7 +17,7 @@ class AsteroidBelt:
             try:
                 j_s = col[col == '#'].index
                 for j in j_s:
-                    asteroids[(j,i)] = 0
+                    asteroids[(i,j)] = 0
             except:
                 pass
         return asteroids
@@ -42,12 +37,12 @@ class AsteroidBelt:
             slope = Fraction(a2[1] - a1[1], a2[0] - a1[0])
             D = slope.denominator
             N = slope.numerator
-        search = a2
-        search = (search[0] - D, search[1] - N)
-        while search != a1:
-            if self.map.loc[search] == '#':
+        s = a2
+        s = (s[0] - D, s[1] - N)
+        while s != a1:
+            if self.map[s[0]][s[1]] == '#':
                 return False
-            search = (search[0] - D, search[1] - N)
+            s = (s[0] - D, s[1] - N)
         return True
 
     def find_asteroids_in_los(self, base, exclude_vaporized=False):
@@ -64,37 +59,49 @@ class AsteroidBelt:
             if count_los > max_los:
                 max_los = count_los
                 best_asteroid = asteroid
+        self.base = best_asteroid
         return best_asteroid
 
     def solve1(self):
         self.base = self.find_best_base()
         return self.count_asteroids_in_los(self.base)
 
-    def vaporize(self):
-        to_be_vaporized = self.find_asteroids_in_los(self.base)
-        sorted_vaporized = []
-        return to_be_vaporized
+    def vaporize(self, to_be_vaporized):
+        angles = [self.angle(self.base, asteroid) for asteroid in to_be_vaporized]
+        sorted_vaporized = [x for _, x in sorted(zip(angles, to_be_vaporized))]
+        for ast in sorted_vaporized:
+            self.asteroids[ast] += 1
+        return sorted_vaporized
 
+    def angle(self, c1, c2):
+        raw = np.arctan2(c2[0] - c1[0], -1 * (c2[1] - c1[1]))
+        if raw < 0:
+            raw += 2 * np.pi
+        return raw
+
+    def solve2(self):
+        to_be_vaporized = self.find_asteroids_in_los(self.base, exclude_vaporized=True)
+        self.vaporized.extend(self.vaporize(to_be_vaporized))
+        x, y = self.vaporized[199]
+        return x*100+y
 
 if __name__ == '__main__':
-    test1 = aoc.read_input('day10_test1.txt')
+    test1 = read_input('day10_test1.txt')
     belt1 = AsteroidBelt(test1)
-    assert belt1.is_asteroid_in_los((0, 4), (0, 1))
-    assert belt1.is_asteroid_in_los((0, 4), (2, 4))
-    assert not belt1.is_asteroid_in_los((0, 4), (3, 4))
-    assert belt1.count_asteroids_in_los((0, 4)) == 7
-    assert belt1.count_asteroids_in_los((4, 3)) == 8
-    assert belt1.find_best_base() == ((4,3))
+    assert not belt1.is_asteroid_in_los((0, 4), (0, 0))
+    assert belt1.is_asteroid_in_los((4, 0), (1, 0))
+    assert belt1.is_asteroid_in_los((4, 0), (4, 2))
+    assert not belt1.is_asteroid_in_los((4, 0), (4, 3))
+    assert belt1.count_asteroids_in_los((4, 0)) == 7
+    assert belt1.count_asteroids_in_los((3, 4)) == 8
 
+    input = read_input('day10.txt')
+    belt = AsteroidBelt(input)
+    print('Solution to Day 10 part I is {}'.format(belt.solve1()))
 
-    test3 = aoc.read_input('day10_test3.txt')
-    belt3 = AsteroidBelt(test3)
-    belt3.solve1()
-    v = belt3.vaporize()
-    [angle_between(belt3.base, x) for x in v]
+    test2 = read_input('day10_test2.txt')
+    belt2 = AsteroidBelt(test2)
+    belt2.solve1()
+    belt2.solve2()
 
-    # input = aoc.read_input('day10.txt')
-    # belt = AsteroidBelt(input)
-    # print('Solution to Day 10 part I is {}'.format(belt.solve1()))
-
-
+    print('Solution to Day 10 part II is {}'.format(belt.solve2()))
