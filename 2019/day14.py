@@ -3,11 +3,11 @@ import pdb
 
 
 def parse_lines(lines):
-    reactions = {}
+    all_reactions = {}
     for line in lines:
         out, reactions = parse_line(line)
-        reactions[out] = reactions
-    return reactions
+        all_reactions[out] = reactions
+    return all_reactions
 
 def parse_line(line):
     left, right = line.split('=>')
@@ -23,10 +23,14 @@ def parse_line(line):
     quant = int(right[-2])
     return out, {'quant': quant, 'ingredients': ingredients}
 
+def how_much(chem, need, reactions):
+    reactions_ = reactions[chem]
+    quant = reactions_['quant']
+
 
 assert parse_line('7 A, 1 B => 1 C') == ('C', {'quant': 1, 'ingredients': [('A', 7), ('B', 1)]})
 
 test_input1 = read_input('day14_test1.txt')
 
-
+reactions = parse_lines(test_input1)
 
