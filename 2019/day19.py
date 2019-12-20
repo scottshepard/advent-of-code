@@ -1,4 +1,5 @@
 from copy import deepcopy
+import time
 import numpy as np
 from matplotlib import pyplot as plt
 from utils import read_input
@@ -31,32 +32,48 @@ class Scanner:
         self.area = np.append(self.area, new_cols, axis=1)
 
     def explore(self, new_shape):
+        start = time.time()
         orig_shape = self.area.shape
         self.expand(new_shape)
         self.scan(orig_shape[0], new_shape[0], 0, orig_shape[1])
         self.scan(0, orig_shape[0], orig_shape[1], new_shape[1])
+        self.scan(orig_shape[0], new_shape[0], orig_shape[1], new_shape[1])
+        end = time.time()
+        print('Explored {0} in {1} seconds'.format(new_shape, end-start))
 
     def scan(self, x1, x2, y1, y2):
-        for i in range(x1, x2):
-            for j in range(y1, y2):
+        for j in range(x1, x2):
+            prev_x_val = 0
+            for i in range(y1, y2):
                 IC = IntcodeComputer(self.input)
                 val, _ = IC.next([i,j])
                 self.area[i,j] = val[0]
+                if prev_x_val == 1 and val == 0:
+                    break
+                else:
+                    prev_x_val = val
 
     def find_box(self, size):
-        for i in
+        for j in range(self.area.shape[0]):
+            for i in range(self.area.shape[1]):
+                box_fit = self.fit_box(i, j, size)
+                if box_fit:
+                    return (i, j)
+        return False
 
-    def box_fit(self, x, y, size):
+    def fit_box(self, x, y, size):
         if (x + size) >= self.area.shape[0] or (y + size) >= self.area.shape[1]:
             return False
         else:
             return (self.area[x,y] + self.area[x+size, y] + self.area[x, y+size] + self.area[x+size, y+size]) == 4
 
 
-s = Scanner(input, (50,50))
+s = Scanner(input, (50, 50))
 plt.imshow(s.area, interpolation='nearest')
 plt.savefig('day19_part1.png')
 print('Solution to Day 19 Part I is {}'.format(sum(sum(s.area))))
 
+s.explore((2500, 2500))
+print(s.find_box(100))
 
 
