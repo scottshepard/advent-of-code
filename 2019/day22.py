@@ -25,7 +25,7 @@ class Deck:
         new_stack = [i for i in range(self.n_cards)]
         i = 0
         while len(self.cards) > 0:
-            i = i % 10
+            i = i % self.n_cards
             new_stack[i] = self.cards.pop(0)
             i += n
         self.cards = new_stack
@@ -57,7 +57,6 @@ class Game:
         return self.deck.cards
 
 
-
 d = Deck(10)
 assert d.deal_into_stack() == [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
 d.factory_reset()
@@ -81,4 +80,7 @@ assert g3.solve() == [6, 3, 0, 7, 4, 1, 8, 5, 2, 9]
 g4 = Game(test_inputs[12:], 10)
 assert g4.solve() == [9, 2, 5, 8, 1, 4, 7, 0, 3, 6]
 
-
+input = read_input('day22.txt')
+g = Game(input, 10007)
+g.solve()
+print('Solution to Day 22 Part I is {}'.format(g.deck.cards.index(2019)))
