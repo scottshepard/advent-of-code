@@ -14,9 +14,8 @@ def read_input(file, split_char='\n'):
 
 class Machine:
 
-    def __init__(self, replacements, starters):
+    def __init__(self, replacements):
         self.replacements = self._parse_replacements(replacements)
-        self.starters = starters
 
     def _parse_replacements(self, replacements_list):
         replacements_dict = {}
@@ -28,7 +27,7 @@ class Machine:
                 replacements_dict[r[0]] = [r[1]]
         return replacements_dict
 
-    def replace(self, molecule):
+    def find_all_replacements(self, molecule):
         results = []
         for k, v_l in self.replacements.items():
             for v in v_l:
@@ -40,49 +39,47 @@ class Machine:
                     results.append(before + after)
         return set(results)
 
-    def replace_reverse(self, molecule):
-        results = []
+
+    def reverse_search(self, molecule):
+        max_len = 0
+        max_k = ''
+        max_v = ''
         for k, v_l in self.replacements.items():
             for v in v_l:
-                where = [match.start() for match in re.finditer(v, molecule)]
-                for w in where:
-                    before = molecule[:w]
-                    after = molecule[w:]
-                    after = after.replace(v, k, 1)
-                    results.append(before + after)
-        return set(results)
+                if (len(v) > max_len) and (v in molecule):
+                    max_len = len(v)
+                    max_k = k
+                    max_v = v
+        molecule = re.sub(max_v, max_k, molecule, 1)
+        return molecule
 
-    def make(self, mol_lst, count=0):
-        mols = []
-        for mol in mol_lst:
-            mols.extend(list(self.replace_reverse(mol)))
-        mols = list(set(mols))
+    def count_steps_to_make(self, molecule, count=0):
+        molecule = self.reverse_search(molecule)
         count += 1
-        pdb.set_trace()
-        for st in self.starters:
-            if st in mols:
-                return count+1
+        if molecule == 'e':
+            return count
         else:
-            return self.make(mols, count)
+            return self.count_steps_to_make(molecule, count)
 
 sample_replacements = [
     'H => HO',
     'H => OH',
-    'O => HH'
+    'O => HH',
+    'e => H',
+    'e => O'
 ]
 sample_molecule = ['HOH', 'HOHOHO']
 
-test_machine = Machine(sample_replacements, ['O', 'H'])
-assert len(test_machine.replace('HOH')) == 4
-assert len(test_machine.replace('HOHOHO')) == 7
+test_machine = Machine(sample_replacements)
+assert len(test_machine.find_all_replacements('HOH')) == 4
+assert len(test_machine.find_all_replacements('HOHOHO')) == 7
 
-#assert test_machine.make(['HOH']) == 3
-#assert test_machine.make(['HOHOHO']) == 6
+assert test_machine.count_steps_to_make('HOH') == 3
+assert test_machine.count_steps_to_make('HOHOHO') == 6
 
 
 replacements = read_input('replacements.txt')
 molecule = read_input('input.txt')[0]
-m = Machine(replacements, ['HF', 'NAl', 'OMg'])
-print('Part 1:', len(m.replace(molecule)))
-print('Part 2:', m.make([molecule]))
-
+m = Machine(replacements)
+print('Part 1:', len(m.find_all_replacements(molecule)))
+print('Part 2:', m.count_steps_to_make(molecule))
