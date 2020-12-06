@@ -38,6 +38,3 @@ Si => CaSi
 Th => ThCa
 Ti => BP
 Ti => TiTi
-e => HF
-e => NAl
-e => OMg
