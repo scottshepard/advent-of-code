@@ -1,0 +1,17 @@
+name,type,cost,damage,armor
+Dagger,Weapon,8,4,0
+Shortsword,Weapon,10,5,0
+Warhammer,Weapon,25,6,0
+Longsword,Weapon,40,7,0
+Greataxe,Weapon,74,8,0
+Leather,Armor,13,0,1
+Chainmail,Armor,31,0,2
+Splintmail,Armor,53,0,3
+Bandedmail,Armor,75,0,4
+Platemail,Armor,102,0,5
+Ring1,Ring,25,1,0
+Ring2,Ring,50,2,0
+Ring3,Ring,100,3,0
+Ring4,Ring,20,0,1
+Ring5,Ring,40,0,2
+Ring6,Ring,80,0,3
