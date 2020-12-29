@@ -3,27 +3,55 @@ from utils import read_input
 
 class Game:
 
-    def __init__(self, p1, p2):
-        self.p1 = p1
-        self.p2 = p2
+    def __init__(self, p1, p2, mode='normal'):
+        self.p1 = p1.copy()
+        self.p2 = p2.copy()
         self.round = 0
+        self.mode = mode
+        self.configurations = []
+        self.solved = False
 
     def __next__(self):
-        p1_card = self.p1.pop(0)
-        p2_card = self.p2.pop(0)
-        if p1_card > p2_card:
-            self.p1.extend([p1_card, p2_card])
+        if (self.p1, self.p2) in self.configurations:
+            self.solved = True
+            self.winner = 1
         else:
-            self.p2.extend([p2_card, p1_card])
-        self.round += 1
+            self.configurations.append((self.p1.copy(), self.p2.copy()))
+            p1_card = self.p1.pop(0)
+            p2_card = self.p2.pop(0)
+
+            winner = self._determine_winner(p1_card, p2_card)
+
+            if winner == 1:
+                self.p1.extend([p1_card, p2_card])
+            else:
+                self.p2.extend([p2_card, p1_card])
+            if len(self.p1) == 0:
+                self.solved = True
+                self.winner = 2
+            if len(self.p2) == 0:
+                self.solved = True
+                self.winner = 1
+            self.round += 1
+
+    def _determine_winner(self, p1_card, p2_card):
+        if (p1_card <= len(self.p1)) and (p2_card <= len(self.p2)) and (self.mode == 'recursive'):
+            g = Game(self.p1[:p1_card], self.p2[:p2_card], 'recursive')
+            winner, _ = g.play()
+        else:
+            if p1_card > p2_card:
+                winner = 1
+            elif p2_card > p1_card:
+                winner = 2
+        return winner
 
     def __repr__(self):
         return 'P1: ' + str(self.p1) + '\nP2: ' + str(self.p2)
 
-    def solve(self):
-        while len(self.p1) > 0 and len(self.p2) > 0:
+    def play(self):
+        while not self.solved:
             self.__next__()
-        return self.score()
+        return self.winner, self.score()
 
     def score(self):
         if len(self.p1) == 0:
@@ -43,8 +71,17 @@ def parse_input(input):
 
 p1, p2 = parse_input('day22_test.txt')
 g = Game(p1, p2)
-g.solve() == 306
+assert g.play() == (2, 306)
+
+g2 = Game(p1, p2, mode='recursive')
+assert g2.play() == (2, 291)
 
 p1, p2 = parse_input('day22.txt')
 g = Game(p1, p2)
-print('Part 1:', g.solve())
+_, score = g.play()
+print('Part 1:', score)
+
+p1, p2 = parse_input('day22.txt')
+g2 = Game(p1, p2, mode='recursive')
+_, score = g2.play()
+print('Part 2:', score)
