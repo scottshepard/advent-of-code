@@ -10,10 +10,12 @@ var data = readInput('day11.txt').split('\n').map(e => e.split('').map(Number))
 
 class GameOfLife {
     constructor(data) {
-        this.grid = data
+        this.grid = data.map(x => x)
         this.height = data.length
         this.width = data[0].length
+        this.size = this.height * this.width
         this.flashes = 0
+        this.steps = 0
     }
 
     next() {
@@ -41,6 +43,8 @@ class GameOfLife {
             }
         }
         this.flashes += flashes
+        this.steps++
+        return flashes
     }
 
     flash(x, y) {
@@ -57,13 +61,27 @@ class GameOfLife {
         }
         return newFlashPoints
     }
+
+    synchronize() {
+        var steps = 0
+        var flashes = 0
+        while (flashes < this.size) {
+            flashes = this.next()
+            steps++
+        }
+        return steps
+    }
 }
  
-function part1() {
-    var g = new GameOfLife(data)
+function solve(data) {
+    let g = new GameOfLife(data)
     for (var i=0; i < 100; i++) {
         g.next()
     }
-    return g.flashes
+    console.log('Part 1:', g.flashes)
+
+    g.synchronize()
+    console.log('Part 2:', g.steps)
 }
-console.log('Part 1:', part1())
+
+solve(data)
