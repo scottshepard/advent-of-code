@@ -3,27 +3,33 @@ const assert = require('assert')
 const fs = require('fs')
 const path = require('path')
 
-EXPLODE_PAT = /(\[[0-9]*?,?]*?){5}/
-
 function readInput(filename) {
     return fs.readFileSync(path.join('inputs', filename), 'utf8')
 }
 
-
 function part1(input) {
     var final = sum(input)
-    // console.log(final)
     return magnitude(eval(final))
 }
 
+function part2(input) {
+    mags = []
+    for (var i=0; i < input.length; i++) {
+        for (var j=0; j < input.length; j++) {
+            if (i == j) 
+                continue
+            else {
+                mags.push(magnitude(eval(add(input[i], input[j]))))
+            }
+        }
+    }
+    return Math.max(...mags)
+}
+
 function sum(numbers) {
-    // console.log('Adding: ', numbers[0], numbers[1])
     var new_number = add(numbers[0], numbers[1])
-    // console.log(new_number)
     for (var i = 2; i < numbers.length; i++) {
-        // console.log('Adding: ', new_number, numbers[i])
         new_number = add(new_number, numbers[i])
-        // console.log(new_number)
     }
     return new_number
 }
@@ -64,29 +70,21 @@ function nested(number) {
 }
 
 function explode(number) {
-    // console.log('Exploding: ', number)
     var m = nested(number)
     var pre_str = number.slice(0, m)
-    // console.log(pre_str)
     var str = number.slice(m)
-    // console.log(str)
 
     // Find the first pair within the nested array
     var new_match = str.match(/\[[0-9]+\,[0-9]+\]/)
     var post_str = str.slice(new_match.index + new_match[0].length - 1)
     var pair = eval(new_match[0])
-    // console.log(pair)
 
     // Figure out pre string with right-most int added to the left part of the pair
     var left_int_match = pre_str.match(/[0-9]+/g)
-    // console.log(left_int_match)
     if (left_int_match) {
         var left_int_index = pre_str.lastIndexOf(left_int_match.slice(-1))
-        // console.log(left_int_index)
         var left_int = Number(pre_str.slice(left_int_index, left_int_index+left_int_match.slice(-1)[0].length)) + pair[0]
-        // console.log(left_int)
         pre_str = pre_str.slice(0, left_int_index) + left_int + pre_str.slice(left_int_index+left_int_match.slice(-1)[0].length)
-        // console.log(pre_str)
     }
 
     // Figure out post string with left-most int added to the right part of the pair
@@ -102,7 +100,6 @@ function explode(number) {
 }
 
 function split(number) {
-    // console.log('Splitting: ', number)
     var m = number.match(/[0-9]{2,}/)
     if (m) {
         var pre_str = number.slice(0, m.index)
@@ -146,5 +143,8 @@ assert.equal(magnitude([[[[3,0],[5,3]],[4,4]],[5,5]]), 791)
 assert.equal(magnitude([[[[5,0],[7,4]],[5,5]],[6,6]]), 1137)
 assert.equal(magnitude([[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]), 3488)
 
+// var numbers = readInput('day18_test.txt').split('\n')
 var numbers = readInput('day18.txt').split('\n')
+
 console.log('Part 1:', part1(numbers))
+console.log('Part 2:', part2(numbers))
