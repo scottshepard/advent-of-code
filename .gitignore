@@ -1,13 +1,28 @@
+# R
 .Rproj.user
 .Rhistory
 .RData
+
+# Mac
 .DS_Store
+
+# Python
 venv*
 *.swp
 *.pyc
 __pycache__/*
+
+# Jupyter
 .ipynb_checkpoints
 .ipynb_checkpoints/*
+
+# PyCharm
 .idea/
+
+# Various files
 *.png
 *.csv
+
+# Scala
+.scala-build/
+.bsp/
